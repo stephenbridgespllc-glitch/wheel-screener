@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/industry-e2648902-d6e6-4bc5-b1ff-d0fd94fd6c60/styles.css">
+  <link rel="stylesheet" href="cy-theme.css">
+  <script src="_ds/industry-e2648902-d6e6-4bc5-b1ff-d0fd94fd6c60/_ds_bundle.js"></script>
+  <script src="liveData.js?v=10"></script>
+  <style>
+    body { margin: 0; }
+    a { color: var(--color-accent-700); }
+    a:hover { color: var(--color-accent-900); }
+  </style>
+</helmet>
+
+<div class="cy-shell">
+  <aside class="cy-side">
+    <a href="Home.dc.html" class="cy-brand">Compound<br>Yield<span>.</span></a>
+    <nav class="cy-index">
+      <a href="Stock%20Screener.dc.html" class="cy-link"><span>01</span>Stock Screener</a>
+      <a href="Stock%20Valuation.dc.html" class="cy-link is-active"><span>02</span>Value</a>
+      <a href="Dividend%20Calculator.dc.html" class="cy-link"><span>03</span>Dividend Calculator</a>
+      <a href="Compound%20Calculator.dc.html" class="cy-link"><span>04</span>Compound Calculator</a>
+      <a href="Portfolio.dc.html" class="cy-link"><span>05</span>Portfolio</a>
+      <a href="Options%20Guide.dc.html" class="cy-link"><span>06</span>Options Guide</a>
+    </nav>
+    <div class="cy-foot"><i></i>Research tools for long-term investors. Not investment advice.</div>
+  </aside>
+  <div class="cy-main">
+
+  <header class="cy-top">
+    <div class="cy-pagetitle"><span class="cy-num">02</span><span>Value</span></div>
+    <div style="position:relative;display:flex;align-items:center;gap:var(--space-3)">
+      <label style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-neutral-700)">Search</label>
+      <input class="input" type="text" placeholder="Ticker or company — S&amp;P 500, Nasdaq-100, Dow" value="{{ query }}" onChange="{{ onQueryChange }}" onKeyDown="{{ onQueryKey }}" onFocus="{{ onQueryFocus }}" onBlur="{{ onQueryBlur }}" style="width:320px">
+      <sc-if value="{{ showSuggest }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:100%;right:0;width:320px;margin-top:4px;background:var(--color-bg);border:1px solid var(--color-neutral-400);box-shadow:var(--shadow-md);z-index:10;display:flex;flex-direction:column">
+          <sc-for list="{{ suggestions }}" as="s" hint-placeholder-count="6">
+            <div onMouseDown="{{ onPick }}" data-symbol="{{ s.symbol }}" style="display:flex;justify-content:space-between;gap:var(--space-3);padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--color-neutral-200)" style-hover="background:var(--color-accent-100)">
+              <span><strong>{{ s.symbol }}</strong> <span style="color:var(--color-neutral-700)">{{ s.name }}</span></span>
+              <span style="font-size:11px;color:var(--color-neutral-600);white-space:nowrap">{{ s.tag }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+      <div style="display:flex;align-items:center;gap:var(--space-2)">
+        <span class="{{ dataTagClass }}" style="font-size:11px;letter-spacing:0.08em">{{ dataTag }}</span>
+        <sc-if value="{{ connected }}" hint-placeholder-val="{{ false }}">
+          <button class="btn btn-ghost" onClick="{{ refresh }}">Refresh</button>
+        </sc-if>
+        <button class="btn btn-secondary" onClick="{{ openSettings }}">Data Settings</button>
+      </div>
+  </header>
+
+  <main style="padding:var(--space-6);display:flex;flex-direction:column;gap:var(--space-6);max-width:1400px;width:100%;box-sizing:border-box;margin:0 auto">
+
+    <sc-if value="{{ loading }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:var(--space-3) var(--space-4);border:1px solid var(--color-accent-500);background:var(--color-accent-100);font-size:13px;color:var(--color-accent-900)">Retrieving fundamentals for {{ loadingSymbol }}…</div>
+    </sc-if>
+    <sc-if value="{{ hasError }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:var(--space-3) var(--space-4);border:1px solid var(--color-neutral-500);font-size:13px">{{ error }}</div>
+    </sc-if>
+
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:var(--space-4);flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.09em;color:var(--color-neutral-700)">{{ t.sector }} &middot; {{ indicesLabel }} &middot; Moat: {{ t.moat }}</div>
+        <div style="font-family:var(--font-heading);font-size:40px;font-weight:800;line-height:1;letter-spacing:-0.025em">{{ t.symbol }} <span style="font-weight:400;color:var(--color-neutral-700);font-size:28px">{{ t.name }}</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--color-neutral-700);max-width:340px;text-align:right">{{ sourceNote }}</span>
+        <span class="{{ verdictClass }}" style="font-size:13px;letter-spacing:0.08em">{{ verdict }}</span>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));border:1px solid var(--color-neutral-300)">
+      <div style="padding:var(--space-4);border-right:1px solid var(--color-neutral-300);display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-neutral-700)">Current Price</div>
+        <div style="font-family:var(--font-heading);font-size:34px;font-weight:800;letter-spacing:-0.025em">{{ priceLabel }}</div>
+      </div>
+      <div style="padding:var(--space-4);border-right:1px solid var(--color-neutral-300);display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-neutral-700)">Intrinsic Value (Base)</div>
+        <div style="font-family:var(--font-heading);font-size:34px;font-weight:800;color:var(--color-accent-700);letter-spacing:-0.025em">{{ baseLabel }}</div>
+        <div style="font-size:12px;color:var(--color-neutral-700)">Range {{ bearLabel }} – {{ bullLabel }}</div>
+      </div>
+      <div style="padding:var(--space-4);border-right:1px solid var(--color-neutral-300);display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-neutral-700)">Margin of Safety</div>
+        <div style="font-family:var(--font-heading);font-size:34px;font-weight:800;letter-spacing:-0.025em">{{ mosLabel }}</div>
+        <div style="font-size:12px;color:var(--color-neutral-700)">{{ mosNote }}</div>
+      </div>
+      <div style="padding:var(--space-4);display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-neutral-700)">Buy-Below Price</div>
+        <div style="font-family:var(--font-heading);font-size:34px;font-weight:800;letter-spacing:-0.025em">{{ buyBelowLabel }}</div>
+        <div style="font-size:12px;color:var(--color-neutral-700)">At {{ mosThresholdLabel }} required margin</div>
+      </div>
+    </div>
+
+    <sc-if value="{{ showBar }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+      <div style="position:relative;height:56px;margin-top:var(--space-4);border-bottom:1px solid var(--color-neutral-400)">
+        <div style="position:absolute;bottom:0;height:20px;left:{{ bar.bandLeft }};width:{{ bar.bandWidth }};background:var(--color-accent-200);border:1px solid var(--color-accent-500)"></div>
+        <div style="position:absolute;bottom:0;height:34px;width:2px;background:var(--color-accent-700);left:{{ bar.baseLeft }}"></div>
+        <div style="position:absolute;top:0;font-size:11px;color:var(--color-accent-700);transform:translateX(-50%);white-space:nowrap;left:{{ bar.baseLeft }}">VALUE {{ baseLabel }}</div>
+        <div style="position:absolute;bottom:0;height:44px;width:2px;background:var(--color-text);left:{{ bar.priceLeft }}"></div>
+        <div style="position:absolute;top:-14px;font-size:11px;font-weight:600;transform:translateX(-50%);white-space:nowrap;left:{{ bar.priceLeft }}">PRICE {{ priceLabel }}</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--color-neutral-600)">
+        <span>{{ bar.loLabel }}</span><span>Shaded band: bear – bull scenario range</span><span>{{ bar.hiLabel }}</span>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ fo.has }}" hint-placeholder-val="{{ false }}">
+      <div class="card" style="padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-4)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:var(--space-3);flex-wrap:wrap">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div class="card-kicker">FINANCIAL OVERVIEW</div>
+            <div style="font-family:var(--font-heading);font-size:26px;font-weight:800;letter-spacing:-0.03em;line-height:1">{{ fo.title }}</div>
+            <div style="font-size:12px;color:var(--color-neutral-700)">{{ fo.sub }}</div>
+          </div>
+          <div class="seg">
+            <sc-for list="{{ fo.tabs }}" as="tb" hint-placeholder-count="4">
+              <button class="{{ tb.cls }}" data-tab="{{ tb.key }}" onClick="{{ onFinTab }}">{{ tb.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));border-top:1px solid #111;border-left:1px solid #111">
+          <sc-for list="{{ fo.kpis }}" as="k" hint-placeholder-count="6">
+            <div style="padding:var(--space-3);border-right:1px solid #111;border-bottom:1px solid #111;display:flex;flex-direction:column;gap:2px">
+              <span style="font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--color-neutral-700)">{{ k.label }}</span>
+              <span style="font-family:var(--font-heading);font-size:26px;font-weight:800;letter-spacing:-0.03em;line-height:1.05">{{ k.value }}</span>
+              <span style="font-size:11px;color:{{ k.noteColor }}">{{ k.note }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="table" style="width:100%;min-width:760px">
+            <thead>
+              <tr>
+                <th style="text-align:left">Metric</th>
+                <sc-for list="{{ fo.years }}" as="yr" hint-placeholder-count="5">
+                  <th style="text-align:right">{{ yr }}</th>
+                </sc-for>
+                <th style="text-align:right">5-Yr Trend</th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ fo.rows }}" as="fr" hint-placeholder-count="8">
+                <tr>
+                  <td style="white-space:nowrap;font-weight:{{ fr.w }};padding-left:{{ fr.pad }};color:{{ fr.lc }}">{{ fr.label }}</td>
+                  <sc-for list="{{ fr.cells }}" as="c" hint-placeholder-count="5">
+                    <td style="text-align:right;min-width:96px">
+                      <div style="font-family:var(--font-mono);font-size:13px;font-weight:{{ c.w }};color:{{ c.color }}">{{ c.v }}</div>
+                      <div style="height:3px;margin-top:4px;margin-left:auto;background:{{ c.bar }};width:{{ c.bw }}"></div>
+                    </td>
+                  </sc-for>
+                  <td style="text-align:right;font-family:var(--font-mono);font-size:12px;white-space:nowrap;color:{{ fr.tc }}">{{ fr.trend }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+          <span style="font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.05em">Valuation Multiples · at current price</span>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));border-top:1px solid #111;border-left:1px solid #111">
+            <sc-for list="{{ fo.mult }}" as="mu" hint-placeholder-count="7">
+              <div style="padding:8px 10px;border-right:1px solid #111;border-bottom:1px solid #111;display:flex;flex-direction:column;gap:2px">
+                <span style="font-family:var(--font-mono);font-size:10px;text-transform:uppercase;color:var(--color-neutral-700)">{{ mu.label }}</span>
+                <span style="font-family:var(--font-heading);font-size:20px;font-weight:800;letter-spacing:-0.02em">{{ mu.value }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ fo.none }}" hint-placeholder-val="{{ false }}">
+      <div class="card" style="padding:var(--space-4);display:flex;flex-direction:column;gap:6px">
+        <div class="card-kicker">FINANCIAL OVERVIEW</div>
+        <div style="font-size:13px;color:var(--color-neutral-700)">{{ fo.note }}</div>
+      </div>
+    </sc-if>
+
+    <div class="card" style="padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:var(--space-3);flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div class="card-kicker">BEAR / BASE / BULL</div>
+          <div style="font-size:12px;color:var(--color-neutral-700)">{{ scn.sub }}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+          <span style="font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--color-neutral-700)">Probability-weighted value</span>
+          <span style="font-family:var(--font-heading);font-size:34px;font-weight:800;letter-spacing:-0.03em;color:#C23B00;line-height:1">{{ scn.weighted }}</span>
+          <span style="font-size:11px;color:var(--color-neutral-700)">{{ scn.wNote }}</span>
+        </div>
+      </div>
+      <sc-if value="{{ scn.has }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));border-top:1px solid #111;border-left:1px solid #111">
+          <sc-for list="{{ scn.cols }}" as="sc" hint-placeholder-count="3">
+            <div style="padding:var(--space-4) var(--space-3);border-right:1px solid #111;border-bottom:1px solid #111;display:flex;flex-direction:column;gap:6px;background:{{ sc.bg }}">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+                <span style="font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.05em;font-weight:500">{{ sc.name }}</span>
+                <label style="display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:10px;text-transform:uppercase">Prob.<input class="input" type="number" min="0" max="100" step="5" name="{{ sc.key }}" value="{{ sc.prob }}" onChange="{{ onProb }}" style="width:58px;min-height:26px;padding:2px 6px;text-align:right">%</label>
+              </div>
+              <span style="font-family:var(--font-heading);font-size:34px;font-weight:800;letter-spacing:-0.03em;line-height:1">{{ sc.value }}</span>
+              <span style="font-size:12px;font-weight:600;color:{{ sc.upColor }}">{{ sc.upside }}</span>
+              <sc-for list="{{ sc.lines }}" as="ln" hint-placeholder-count="3">
+                <div style="display:flex;justify-content:space-between;gap:6px;font-size:11px;border-top:1px solid var(--color-neutral-300);padding-top:4px"><span style="color:var(--color-neutral-700)">{{ ln.l }}</span><span style="font-family:var(--font-mono)">{{ ln.v }}</span></div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ scn.none }}" hint-placeholder-val="{{ true }}">
+        <div style="font-size:13px;color:var(--color-neutral-700)">Complete the model inputs below to see bear, base and bull cases.</div>
+      </sc-if>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:var(--space-6)">
+
+      <div class="card blueprint" style="padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3);position:relative">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);flex-wrap:wrap">
+          <div class="card-kicker">PRIMARY METHOD</div>
+          <select class="input" value="{{ method.key }}" onChange="{{ onMethodChange }}" style="width:auto;font-size:12px">
+            <sc-for list="{{ methodOptions }}" as="mo" hint-placeholder-count="5">
+              <option value="{{ mo.key }}">{{ mo.label }}</option>
+            </sc-for>
+          </select>
+        </div>
+        <div style="font-family:var(--font-heading);font-size:22px;font-weight:800;letter-spacing:-0.025em">{{ method.name }}</div>
+        <p style="margin:0;font-size:13px;line-height:1.5;color:var(--color-neutral-800);text-wrap:pretty">{{ rationale }}</p>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-3)">
+          <sc-for list="{{ inputs }}" as="inp" hint-placeholder-count="4">
+            <div class="field"><label>{{ inp.label }}</label><input class="input" type="number" step="{{ inp.step }}" name="{{ inp.key }}" value="{{ inp.value }}" placeholder="n/a" onChange="{{ onInputChange }}"><div style="font-size:10px;color:var(--color-neutral-600);margin-top:2px">{{ inp.note }}</div></div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ fb.has }}" hint-placeholder-val="{{ false }}">
+          <div style="border:1px solid #111;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-2);padding:8px 10px;border-bottom:1px solid #111;background:var(--color-surface);flex-wrap:wrap">
+              <span style="font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.04em">Auto FCF / share · {{ fb.title }}</span>
+              <sc-if value="{{ fb.overridden }}" hint-placeholder-val="{{ false }}">
+                <button class="btn btn-ghost" onClick="{{ useAutoFcf }}" style="padding:2px 8px">Use auto value</button>
+              </sc-if>
+            </div>
+            <sc-for list="{{ fb.rows }}" as="fr" hint-placeholder-count="7">
+              <div style="display:flex;justify-content:space-between;gap:var(--space-3);padding:5px 10px;font-size:12px;border-bottom:1px solid var(--color-neutral-300);font-weight:{{ fr.w }};color:{{ fr.c }}"><span>{{ fr.label }}</span><span style="font-family:var(--font-mono)">{{ fr.v }}</span></div>
+            </sc-for>
+            <div style="padding:6px 10px;font-size:10px;line-height:1.5;color:var(--color-neutral-600)">{{ fb.note }}</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ fb.missing }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:8px 10px;border:1px solid #111;font-size:12px;color:var(--color-neutral-700)">FCF / share couldn't be auto-calculated — no operating cash flow and capex found in filings. Enter it manually above.</div>
+        </sc-if>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);flex-wrap:wrap;border-top:1px solid var(--color-neutral-300);padding-top:var(--space-3)">
+          <div style="font-size:13px"><span style="color:var(--color-neutral-700)">Market-implied {{ method.impliedLabel }}:</span> <strong>{{ impliedLabel }}</strong> <span style="color:var(--color-neutral-700)">vs {{ assumedLabel }} assumed</span></div>
+          <button class="btn btn-ghost" onClick="{{ resetInputs }}">Reset Assumptions</button>
+        </div>
+      </div>
+
+      <div class="card blueprint" style="padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3);position:relative">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div class="card-kicker">SENSITIVITY</div>
+        <div style="font-size:13px;color:var(--color-neutral-700)">Value per share — rows: {{ method.rowAxisLabel }}, columns: {{ method.colAxisLabel }}. Tinted cells exceed current price.</div>
+        <div style="overflow-x:auto">
+          <table class="table" style="width:100%">
+            <thead>
+              <tr>
+                <th style="text-align:left"></th>
+                <sc-for list="{{ sens.colHeads }}" as="h" hint-placeholder-count="5">
+                  <th style="text-align:right">{{ h }}</th>
+                </sc-for>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ sens.rows }}" as="r" hint-placeholder-count="5">
+                <tr>
+                  <td style="font-weight:600;white-space:nowrap">{{ r.head }}</td>
+                  <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="5">
+                    <td style="text-align:right;background:{{ c.bg }};font-weight:{{ c.weight }};outline:{{ c.outline }};outline-offset:-1px">{{ c.label }}</td>
+                  </sc-for>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card blueprint" style="padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3);position:relative">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div class="card-kicker">CROSS-CHECKS</div>
+        <table class="table" style="width:100%">
+          <thead><tr><th style="text-align:left">Measure</th><th style="text-align:right">Value</th><th style="text-align:right">vs Price</th></tr></thead>
+          <tbody>
+            <sc-for list="{{ crossChecks }}" as="x" hint-placeholder-count="5">
+              <tr>
+                <td><div style="font-weight:600">{{ x.label }}</div><div style="font-size:11px;color:var(--color-neutral-600)">{{ x.note }}</div></td>
+                <td style="text-align:right;white-space:nowrap">{{ x.value }}</td>
+                <td style="text-align:right;white-space:nowrap;color:{{ x.color }}">{{ x.delta }}</td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card blueprint" style="padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3);position:relative">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <div class="card-kicker">BUSINESS QUALITY</div>
+          <div style="font-size:12px;color:var(--color-neutral-700)">{{ qualityPassLabel }}</div>
+        </div>
+        <table class="table" style="width:100%">
+          <thead><tr><th style="text-align:left">Metric</th><th style="text-align:right">Value</th><th style="text-align:right">Hurdle</th><th style="text-align:right">Pass</th></tr></thead>
+          <tbody>
+            <sc-for list="{{ quality }}" as="q" hint-placeholder-count="8">
+              <tr>
+                <td>{{ q.label }}</td>
+                <td style="text-align:right">{{ q.value }}</td>
+                <td style="text-align:right;color:var(--color-neutral-600)">{{ q.hurdle }}</td>
+                <td style="text-align:right;font-weight:600;color:{{ q.color }}">{{ q.mark }}</td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:var(--space-3);flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div class="card-kicker">PEER COMPARISON</div>
+          <div style="font-size:12px;color:var(--color-neutral-700)">{{ peer.sub }}</div>
+        </div>
+        <div style="display:flex;gap:var(--space-2);align-items:center">
+          <input class="input" type="text" placeholder="Add peer ticker" value="{{ peer.input }}" onChange="{{ onPeerIn }}" onKeyDown="{{ onPeerKey }}" style="width:150px;text-transform:uppercase">
+          <button class="btn btn-secondary" onClick="{{ addPeer }}">Add</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <sc-for list="{{ peer.chips }}" as="pc" hint-placeholder-count="5">
+          <span class="tag tag-outline" style="display:inline-flex;align-items:center;gap:6px">{{ pc.sym }}<span data-sym="{{ pc.sym }}" onClick="{{ removePeer }}" style="cursor:pointer;font-weight:700">&times;</span></span>
+        </sc-for>
+      </div>
+      <sc-if value="{{ peer.has }}" hint-placeholder-val="{{ false }}">
+        <div style="overflow-x:auto">
+          <table class="table" style="width:100%;min-width:880px">
+            <thead>
+              <tr>
+                <th style="text-align:left">Company</th><th style="text-align:right">Price</th><th style="text-align:right">Mkt Cap</th><th style="text-align:right">P / E</th><th style="text-align:right">EV / EBITDA</th><th style="text-align:right">P / FCF</th><th style="text-align:right">Div Yield</th><th style="text-align:right">Net Margin</th><th style="text-align:right">Rev CAGR 5Y</th><th style="text-align:right">ROIC</th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ peer.rows }}" as="pr" hint-placeholder-count="6">
+                <tr style="background:{{ pr.bg }};font-weight:{{ pr.w }};border-top:{{ pr.bt }}">
+                  <td style="white-space:nowrap"><div style="font-weight:700">{{ pr.sym }}</div><div style="font-size:11px;font-weight:400;color:var(--color-neutral-600);max-width:200px;overflow:hidden;text-overflow:ellipsis">{{ pr.name }}</div></td>
+                  <td style="text-align:right;font-family:var(--font-mono)">{{ pr.price }}</td>
+                  <td style="text-align:right;font-family:var(--font-mono)">{{ pr.cap }}</td>
+                  <td style="text-align:right;font-family:var(--font-mono)">{{ pr.pe }}</td>
+                  <td style="text-align:right;font-family:var(--font-mono)">{{ pr.ev }}</td>
+                  <td style="text-align:right;font-family:var(--font-mono)">{{ pr.pfcf }}</td>
+                  <td style="text-align:right;font-family:var(--font-mono)">{{ pr.dy }}</td>
+                  <td style="text-align:right;font-family:var(--font-mono)">{{ pr.nm }}</td>
+                  <td style="text-align:right;font-family:var(--font-mono)">{{ pr.rg }}</td>
+                  <td style="text-align:right;font-family:var(--font-mono)">{{ pr.roic }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+        <div style="font-size:11px;color:var(--color-neutral-600)">{{ peer.read }}</div>
+      </sc-if>
+      <sc-if value="{{ peer.none }}" hint-placeholder-val="{{ true }}">
+        <div style="font-size:13px;color:var(--color-neutral-700)">{{ peer.note }}</div>
+      </sc-if>
+    </div>
+
+    <div style="font-size:11px;color:var(--color-neutral-600)">{{ footerNote }} Not investment advice.</div>
+  </main>
+
+  <sc-if value="{{ settingsOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:50">
+      <div class="dialog" style="width:min(560px,92vw);display:flex;flex-direction:column;gap:var(--space-3)">
+        <div class="dialog-title">Data Settings</div>
+        <div class="dialog-body" style="display:flex;flex-direction:column;gap:var(--space-3)">
+          <div class="field"><label>Financial Modeling Prep API Key</label><input class="input" type="password" name="fmpKey" value="{{ sDraft.fmpKey }}" onChange="{{ onSettingsField }}" placeholder="Stored only in this browser — optional if set on proxy"></div>
+          <div class="field"><label>Proxy URL (Tradier + SEC EDGAR)</label><input class="input" type="text" name="proxyUrl" value="{{ sDraft.proxyUrl }}" onChange="{{ onSettingsField }}" placeholder="https://wheel-data-proxy.you.workers.dev"></div>
+          <div class="field"><label>Screener Scan Limit (symbols per S&amp;P 500 scan)</label><input class="input" type="number" name="scanLimit" value="{{ sDraft.scanLimit }}" onChange="{{ onSettingsField }}"></div>
+          <div style="font-size:12px;line-height:1.5;color:var(--color-neutral-700)">Prices, statements and ratios come from FMP; 10-K financials from SEC EDGAR fill gaps and extend history; Tradier supplies option chains and backup quotes. Deploy the proxy with the steps in <strong>proxy/README.md</strong>.</div>
+          <sc-if value="{{ hasTest }}" hint-placeholder-val="{{ false }}">
+            <table class="table" style="width:100%">
+              <tbody>
+                <sc-for list="{{ testRows }}" as="tr" hint-placeholder-count="4">
+                  <tr><td style="font-weight:600;width:110px">{{ tr.label }}</td><td>{{ tr.value }}</td></tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </sc-if>
+        </div>
+        <div class="dialog-actions" style="display:flex;gap:var(--space-2);justify-content:flex-end;flex-wrap:wrap">
+          <button class="btn btn-ghost" onClick="{{ clearCache }}">Clear Cache</button>
+          <button class="btn btn-secondary" onClick="{{ testConn }}">{{ testLabel }}</button>
+          <button class="btn btn-ghost" onClick="{{ closeSettings }}">Cancel</button>
+          <button class="btn btn-primary" onClick="{{ saveSettings }}">Save</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;mosThreshold&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:25,&quot;min&quot;:0,&quot;max&quot;:50,&quot;step&quot;:5,&quot;unit&quot;:&quot;%&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Valuation&quot;},&quot;treasury10y&quot;:{&quot;editor&quot;:&quot;float&quot;,&quot;default&quot;:4.2,&quot;min&quot;:0,&quot;max&quot;:10,&quot;step&quot;:0.05,&quot;unit&quot;:&quot;%&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Valuation&quot;}}">
+var T10 = 4.2;
+function money(v) { return (v == null || !isFinite(v)) ? '—' : (v < 0 ? '-$' : '$') + Math.abs(v).toFixed(2); }
+function pct(v, d) { return (v == null || !isFinite(v)) ? 'n/m' : v.toFixed(d == null ? 1 : d) + '%'; }
+function signed(v) { return !isFinite(v) ? '—' : (v >= 0 ? '+' : '') + v.toFixed(1) + '%'; }
+
+var PEER_KEY = 'value_peers_v1';
+function loadPeerStore() { try { return JSON.parse(localStorage.getItem(PEER_KEY)) || {}; } catch (e) { return {}; } }
+function savePeerStore(o) { try { localStorage.setItem(PEER_KEY, JSON.stringify(o)); } catch (e) {} }
+var SCN_T = {
+  dcf: { bear: function (q) { return { g: q.g * 0.5, r: q.r + 1, tg: q.tg - 0.5 }; }, bull: function (q) { return { g: q.g * 1.3 + 1, r: q.r - 0.5, tg: q.tg + 0.25 }; } },
+  ddm: { bear: function (q) { return { g: q.g * 0.5, r: q.r + 1, tg: q.tg - 0.5 }; }, bull: function (q) { return { g: q.g * 1.3 + 0.5, r: q.r - 0.5, tg: q.tg + 0.25 }; } },
+  ev: { bear: function (q) { return { ebitda: q.ebitda * 0.85, mult: q.mult * 0.8 }; }, bull: function (q) { return { ebitda: q.ebitda * 1.1, mult: q.mult * 1.15 }; } },
+  ptbv: { bear: function (q) { return { rote: q.rote - 2.5, coe: q.coe + 1 }; }, bull: function (q) { return { rote: q.rote + 2, coe: q.coe - 0.5 }; } },
+  asset: { bear: function (q) { return { tbv: q.tbv * 0.9, mult: q.mult * 0.8 }; }, bull: function (q) { return { mult: q.mult * 1.2 }; } }
+};
+var KUNIT = { cf: '$', tbv: '$', g: '%', tg: '%', r: '%', rote: '%', coe: '%', ebitda: '$B', nd: '$B', mult: 'x', sh: 'B' };
+function fmtK(k, v) { if (v == null || !isFinite(v)) return 'n/a'; var u = KUNIT[k]; return u === '$' ? '$' + v.toFixed(2) : u === '%' ? v.toFixed(2) + '%' : u === '$B' ? '$' + v.toFixed(1) + 'B' : u === 'x' ? v.toFixed(2) + 'x' : v.toFixed(2) + 'B'; }
+function peerM(r) {
+  var h = r.hist && r.hist.length ? r.hist[r.hist.length - 1] : {};
+  var px = r.price, mcap = r.marketCapB != null && isFinite(r.marketCapB) ? r.marketCapB * 1e9 : (px && r.shares ? px * r.shares : null);
+  var ev = mcap != null && h.netDebt != null ? mcap + h.netDebt : null, fcf = h.fcf != null ? h.fcf : (h.ocf != null && h.capex != null ? h.ocf - h.capex : null);
+  return { mcap: mcap, pe: px && r.eps > 0 ? px / r.eps : null, ev: ev != null && h.ebitda > 0 ? ev / h.ebitda : null,
+    pfcf: mcap && fcf > 0 ? mcap / fcf : (px && r.fcfps > 0 ? px / r.fcfps : null), dy: px && r.dps > 0 ? r.dps / px * 100 : (r.live ? 0 : null),
+    nm: h.revenue ? h.netIncome / h.revenue * 100 : null, rg: r.q ? r.q.rev : null, roic: r.q ? r.q.roic : null };
+}
+function median(a) { a = a.filter(function (v) { return v != null && isFinite(v); }).sort(function (x, y) { return x - y; }); if (!a.length) return null; var m = Math.floor(a.length / 2); return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2; }
+function twoStage(cf, g, tg, r) {
+  g /= 100; tg /= 100; r /= 100;
+  if (r <= tg) return NaN;
+  var pv = 0, c = cf;
+  for (var i = 1; i <= 10; i++) { var gi = i <= 5 ? g : g - (g - tg) * (i - 5) / 5; c *= 1 + gi; pv += c / Math.pow(1 + r, i); }
+  return pv + (c * (1 + tg) / (r - tg)) / Math.pow(1 + r, 10);
+}
+
+var METHODS = {
+  dcf: {
+    name: 'Discounted Cash Flow (10-yr, fading growth)',
+    fields: [{ key: 'cf', label: 'FCF / Share, ex-SBC ($)', step: 0.1 }, { key: 'g', label: 'Growth, Years 1–5 (%)', step: 0.5 }, { key: 'tg', label: 'Terminal Growth (%)', step: 0.25 }, { key: 'r', label: 'Discount Rate / WACC (%)', step: 0.25 }],
+    compute: function (p) { return twoStage(p.cf, p.g, p.tg, p.r); },
+    row: { key: 'r', label: 'discount rate', steps: [-1, -0.5, 0, 0.5, 1], mode: 'add', unit: '%' },
+    col: { key: 'tg', label: 'terminal growth', steps: [-1, -0.5, 0, 0.5, 1], mode: 'add', unit: '%' },
+    implied: { key: 'g', lo: -30, hi: 60, label: '5-yr FCF growth', unit: '%' }
+  },
+  ddm: {
+    name: 'Dividend Discount Model (10-yr, fading growth)',
+    fields: [{ key: 'cf', label: 'Dividend / Share ($)', step: 0.01 }, { key: 'g', label: 'Dividend Growth, Years 1–5 (%)', step: 0.25 }, { key: 'tg', label: 'Terminal Growth (%)', step: 0.25 }, { key: 'r', label: 'Required Return (%)', step: 0.25 }],
+    compute: function (p) { return twoStage(p.cf, p.g, p.tg, p.r); },
+    row: { key: 'r', label: 'required return', steps: [-1, -0.5, 0, 0.5, 1], mode: 'add', unit: '%' },
+    col: { key: 'tg', label: 'terminal growth', steps: [-1, -0.5, 0, 0.5, 1], mode: 'add', unit: '%' },
+    implied: { key: 'g', lo: -30, hi: 60, label: '5-yr dividend growth', unit: '%' }
+  },
+  ev: {
+    name: 'Normalized EV / EBITDA (mid-cycle)',
+    fields: [{ key: 'ebitda', label: 'Mid-Cycle EBITDA ($B)', step: 0.5 }, { key: 'mult', label: 'Target EV/EBITDA (x)', step: 0.25 }, { key: 'nd', label: 'Net Debt ($B)', step: 0.5 }, { key: 'sh', label: 'Diluted Shares (B)', step: 0.01 }],
+    compute: function (p) { return (p.ebitda * p.mult - p.nd) / p.sh; },
+    row: { key: 'mult', label: 'EV/EBITDA multiple', steps: [-1.5, -0.75, 0, 0.75, 1.5], mode: 'add', unit: 'x' },
+    col: { key: 'ebitda', label: 'EBITDA vs base', steps: [0.8, 0.9, 1, 1.1, 1.2], mode: 'mul', unit: '$B' },
+    implied: { key: 'mult', lo: 0, hi: 40, label: 'EV/EBITDA multiple', unit: 'x' }
+  },
+  ptbv: {
+    name: 'Justified Price / Tangible Book',
+    fields: [{ key: 'tbv', label: 'Tangible Book / Share ($)', step: 0.1 }, { key: 'rote', label: 'Sustainable ROTE (%)', step: 0.25 }, { key: 'coe', label: 'Cost of Equity (%)', step: 0.25 }, { key: 'g', label: 'Long-Run Growth (%)', step: 0.25 }],
+    compute: function (p) { return p.coe <= p.g ? NaN : p.tbv * (p.rote - p.g) / (p.coe - p.g); },
+    row: { key: 'coe', label: 'cost of equity', steps: [-1, -0.5, 0, 0.5, 1], mode: 'add', unit: '%' },
+    col: { key: 'rote', label: 'ROTE', steps: [-2, -1, 0, 1, 2], mode: 'add', unit: '%' },
+    implied: { key: 'rote', lo: 0, hi: 60, label: 'sustainable ROTE', unit: '%' }
+  },
+  asset: {
+    name: 'Asset-Based (Adjusted Tangible Book)',
+    fields: [{ key: 'tbv', label: 'Tangible Book / Share ($)', step: 0.1 }, { key: 'mult', label: 'Justified P/TBV (x)', step: 0.05 }],
+    compute: function (p) { return p.tbv * p.mult; },
+    row: { key: 'mult', label: 'P/TBV multiple', steps: [-0.3, -0.15, 0, 0.15, 0.3], mode: 'add', unit: 'x' },
+    col: { key: 'tbv', label: 'asset haircut', steps: [0.8, 0.9, 1, 1.1, 1.2], mode: 'mul', unit: '$' },
+    implied: { key: 'mult', lo: 0, hi: 20, label: 'P/TBV multiple', unit: 'x' }
+  }
+};
+
+var STOCKS = [
+  { symbol: 'AAPL', name: 'Apple Inc.', sector: 'Technology Hardware', moat: 'Wide', price: 218.50, eps: 6.60, bvps: 4.40, pe10: 22, fcfps: 7.10, method: 'dcf', inputs: { cf: 7.10, g: 8, tg: 3, r: 8.5 },
+    rationale: 'Asset-light, highly predictable free cash flow from an installed base of 2B+ devices and recurring services revenue. Book value is depressed by buybacks, so cash-flow methods dominate.',
+    q: { roic: 56, gm: 46, fcfm: 26, nde: 0.1, cov: 30, sh: -14, rev: 8.5, f: 7 } },
+  { symbol: 'MSFT', name: 'Microsoft Corp.', sector: 'Software', moat: 'Wide', price: 452.10, eps: 12.40, bvps: 36.0, pe10: 30, fcfps: 9.50, method: 'dcf', inputs: { cf: 9.50, g: 14, tg: 3.5, r: 8.5 },
+    rationale: 'Subscription software and cloud infrastructure generate durable, compounding free cash flow. Earnings understate value during heavy AI capex, so FCF-based DCF is the standard approach.',
+    q: { roic: 29, gm: 70, fcfm: 30, nde: 0.2, cov: 45, sh: -2, rev: 14, f: 8 } },
+  { symbol: 'KO', name: 'Coca-Cola Co.', sector: 'Consumer Staples', moat: 'Wide', price: 71.20, eps: 2.47, bvps: 6.0, pe10: 24, fcfps: 2.20, method: 'ddm', inputs: { cf: 1.94, g: 5, tg: 3.5, r: 7 },
+    rationale: 'Mature franchise that distributes most earnings as dividends with 60+ consecutive annual increases. The dividend stream is the cash the owner actually receives, making DDM the natural fit.',
+    q: { roic: 15, gm: 61, fcfm: 21, nde: 2.3, cov: 9, sh: 0, rev: 5, f: 6 } },
+  { symbol: 'PFE', name: 'Pfizer Inc.', sector: 'Pharmaceuticals', moat: 'Narrow', price: 24.80, eps: 2.90, bvps: 16.2, pe10: 13, fcfps: 2.40, method: 'dcf', inputs: { cf: 2.40, g: 0, tg: 1, r: 7.5 },
+    rationale: 'Value rests on cash flows from a patent-protected portfolio facing loss-of-exclusivity cliffs. A conservative DCF with flat near-term growth captures pipeline risk better than trailing multiples.',
+    q: { roic: 6, gm: 70, fcfm: 22, nde: 3.1, cov: 6, sh: 1, rev: 3, f: 5 } },
+  { symbol: 'XOM', name: 'Exxon Mobil Corp.', sector: 'Integrated Energy', moat: 'Narrow', price: 118.40, eps: 7.80, bvps: 60.0, pe10: 14, fcfps: 8.00, method: 'ev', inputs: { ebitda: 68, mult: 7.5, nd: 22, sh: 4.4 },
+    rationale: 'Earnings swing with commodity prices, so a single year misleads. Valuing mid-cycle EBITDA at a through-cycle multiple normalizes for the oil price and accounts for the capital structure.',
+    q: { roic: 11, gm: 31, fcfm: 10, nde: 0.4, cov: 40, sh: 9, rev: 7, f: 6 } },
+  { symbol: 'INTC', name: 'Intel Corp.', sector: 'Semiconductors', moat: 'None', price: 21.60, eps: 0.30, bvps: 22.0, pe10: 14, fcfps: -2.00, method: 'asset', inputs: { tbv: 17.0, mult: 1.1 },
+    rationale: 'Negative free cash flow during the foundry build-out makes DCF unreliable. For a turnaround, the floor is the replacement value of fabs and equipment, so an adjusted tangible-book approach anchors value.',
+    q: { roic: -2, gm: 33, fcfm: -15, nde: 2.0, cov: 2, sh: 4, rev: -6, f: 3 } },
+  { symbol: 'F', name: 'Ford Motor Co.', sector: 'Automobiles', moat: 'None', price: 10.85, eps: 1.60, bvps: 11.0, pe10: 9, fcfps: 1.50, method: 'ev', inputs: { ebitda: 15, mult: 3.5, nd: -12, sh: 3.98 },
+    rationale: 'Highly cyclical with a captive finance arm that distorts consolidated leverage. Industrial EBITDA at a mid-cycle auto multiple, net of automotive cash, isolates the operating business.',
+    q: { roic: 4, gm: 15, fcfm: 3, nde: 1.8, cov: 4, sh: 0, rev: 4, f: 5 } },
+  { symbol: 'VZ', name: 'Verizon Communications', sector: 'Telecom Services', moat: 'Narrow', price: 43.60, eps: 4.60, bvps: 23.5, pe10: 11, fcfps: 4.40, method: 'ddm', inputs: { cf: 2.71, g: 2, tg: 1.5, r: 7.5 },
+    rationale: 'Regulated-like, low-growth cash generator whose equity case is the dividend. With limited reinvestment runway, discounting the payout stream is the most direct measure of owner value.',
+    q: { roic: 6, gm: 59, fcfm: 15, nde: 3.4, cov: 4, sh: 1, rev: 1, f: 6 } },
+  { symbol: 'BAC', name: 'Bank of America Corp.', sector: 'Banks', moat: 'Narrow', price: 42.90, eps: 3.40, bvps: 37.0, pe10: 12, fcfps: null, method: 'ptbv', inputs: { tbv: 28.0, rote: 13.5, coe: 10.5, g: 4 },
+    rationale: 'Debt is raw material for a bank, so EV and FCF are not meaningful. Value is a function of how well tangible equity earns relative to its cost: justified P/TBV = (ROTE − g) / (COE − g).',
+    q: { roic: null, gm: null, fcfm: null, nde: null, cov: null, sh: -12, rev: 3, f: 6 } },
+  { symbol: 'DIS', name: 'Walt Disney Co.', sector: 'Media & Entertainment', moat: 'Narrow', price: 96.30, eps: 5.00, bvps: 55.0, pe10: 25, fcfps: 4.60, method: 'dcf', inputs: { cf: 4.60, g: 10, tg: 3, r: 9 },
+    rationale: 'Parks generate steady cash while streaming moves from losses to profitability. A DCF captures the margin inflection that trailing earnings and multiples miss.',
+    q: { roic: 6, gm: 36, fcfm: 9, nde: 2.0, cov: 7, sh: 0.5, rev: 6, f: 6 } }
+];
+
+var QUALITY = [
+  { key: 'roic', label: 'Return on Invested Capital', fmt: 'pct', hurdle: 12, dir: 1 },
+  { key: 'gm', label: 'Gross Margin', fmt: 'pct', hurdle: 40, dir: 1 },
+  { key: 'fcfm', label: 'FCF Margin', fmt: 'pct', hurdle: 10, dir: 1 },
+  { key: 'nde', label: 'Net Debt / EBITDA', fmt: 'x', hurdle: 2.5, dir: -1 },
+  { key: 'cov', label: 'Interest Coverage', fmt: 'x', hurdle: 8, dir: 1 },
+  { key: 'rev', label: 'Revenue CAGR, 5y', fmt: 'pct', hurdle: 5, dir: 1 },
+  { key: 'sh', label: 'Share Count Change, 5y', fmt: 'pct', hurdle: 0, dir: -1 },
+  { key: 'f', label: 'Piotroski F-Score', fmt: 'int', hurdle: 7, dir: 1 }
+];
+
+function fmtAxis(v, unit) { return unit === 'x' ? v.toFixed(2) + 'x' : unit === '%' ? v.toFixed(2) + '%' : unit === '$B' ? '$' + v.toFixed(1) + 'B' : '$' + v.toFixed(2); }
+function axisVal(ax, base, s) { return ax.mode === 'mul' ? base * s : base + s; }
+
+function initialSymbol() {
+  try { var s = new URLSearchParams(window.location.search).get('symbol'); if (s) return s.toUpperCase(); } catch (e) {}
+  return 'AAPL';
+}
+function whenLD() { return new Promise(function (res) { (function chk() { if (window.LiveData) res(window.LiveData); else setTimeout(chk, 50); })(); }); }
+function ok(v) { return v != null && isFinite(v); }
+
+class Component extends DCLogic {
+  state = { scnP: { bear: 25, base: 50, bull: 25 }, peers: {}, peerRecs: {}, peerIn: '', finTab: 'income', symbol: initialSymbol(), recs: {}, overrides: {}, priceOv: {}, methodOv: {}, query: '', focused: false, loading: null, error: '', uni: {}, connected: false,
+    settingsOpen: false, sDraft: { fmpKey: '', proxyUrl: '', scanLimit: 40 }, test: null, testing: false };
+
+  async componentDidMount() {
+    this.LD = await whenLD();
+    this.onSettingsEvt = () => this.refreshConn(false);
+    window.addEventListener('livedata-settings', this.onSettingsEvt);
+    this.refreshConn(true);
+  }
+  componentWillUnmount() { if (this.onSettingsEvt) window.removeEventListener('livedata-settings', this.onSettingsEvt); }
+
+  async refreshConn(initial) {
+    var st = this.LD.status();
+    this.setState({ connected: st.any, recs: {}, uni: this.LD.fallbackUniverse() });
+    this.selectSymbol(initial ? initialSymbol() : this.state.symbol);
+    var u = await this.LD.universe(); this.setState({ uni: u.map });
+  }
+
+  findStock(sym) {
+    if (this.state.recs[sym]) return this.state.recs[sym];
+    if (!this.state.connected) { var c = STOCKS.find(function (x) { return x.symbol === sym; }); if (c) return c; }
+    var u = this.state.uni[sym];
+    return { symbol: sym, name: u ? u.name : sym, sector: 'n/a', moat: 'n/a', price: null, eps: null, bvps: null, pe10: null, fcfps: null,
+      method: 'dcf', inputs: {}, q: {}, blank: true, indices: u ? u.indices.join(' · ') : '' };
+  }
+
+  selectSymbol = async (raw, force) => {
+    var sym = String(raw || '').trim().toUpperCase().replace(/^\$/, '');
+    if (!sym) return;
+    this.setState({ query: '', focused: false, error: '', symbol: sym });
+    try { var u = new URL(window.location.href); u.searchParams.set('symbol', sym); window.history.replaceState(null, '', u.toString()); } catch (err) {}
+    if (!this.LD || !this.LD.status().any) return;
+    if (this.state.recs[sym] && !force) return;
+    this.setState({ loading: sym });
+    try {
+      var rec = await this.LD.valuation(sym, { rf: this.props.treasury10y ?? T10, force: !!force });
+      this.setState(function (s) { var r = Object.assign({}, s.recs); r[sym] = rec; return { recs: r, loading: null }; });
+      this.ensurePeers(sym, rec);
+    } catch (e) {
+      this.setState({ loading: null, error: 'Live data for ' + sym + ' unavailable (' + e.message + '). Values show as n/a — enter them manually.' });
+    }
+  };
+  refresh = () => { this.selectSymbol(this.state.symbol, true); };
+
+  onQueryChange = (e) => { this.setState({ query: e.target.value, focused: true }); };
+  onQueryFocus = () => { this.setState({ focused: true }); };
+  onQueryBlur = () => { setTimeout(() => this.setState({ focused: false }), 120); };
+  onQueryKey = (e) => {
+    if (e.key === 'Enter') { var s = this.suggest(); this.selectSymbol(s.length ? s[0].symbol : this.state.query); }
+    if (e.key === 'Escape') this.setState({ focused: false });
+  };
+  onPick = (e) => { this.selectSymbol(e.currentTarget.dataset.symbol); };
+
+  suggest() {
+    var q = this.state.query.trim().toUpperCase();
+    if (!q) return [];
+    var uni = this.state.uni, recs = this.state.recs;
+    var all = Object.keys(uni);
+    Object.keys(recs).forEach(function (k) { if (all.indexOf(k) === -1) all.push(k); });
+    var nameOf = function (sym) { return uni[sym] ? uni[sym].name : (recs[sym] ? recs[sym].name : ''); };
+    var hits = all.filter(function (sym) { return sym.indexOf(q) === 0 || nameOf(sym).toUpperCase().indexOf(q) !== -1; })
+      .sort(function (a, b) { return (b === q) - (a === q) || (b.indexOf(q) === 0) - (a.indexOf(q) === 0) || a.length - b.length; }).slice(0, 7);
+    var out = hits.map(function (sym) { return { symbol: sym, name: nameOf(sym), tag: uni[sym] ? uni[sym].indices.join(' · ') : 'Loaded' }; });
+    if (/^[A-Z.\-]{1,6}$/.test(q) && hits.indexOf(q) === -1) out.push({ symbol: q, name: 'Look up ticker', tag: 'Any US listing' });
+    return out;
+  }
+
+  onMethodChange = (e) => { var v = e.target.value, sym = this.state.symbol; this.setState(function (s) { var o = Object.assign({}, s.methodOv); o[sym] = v; return { methodOv: o }; }); };
+  curMethod() { var t = this.findStock(this.state.symbol); return this.state.methodOv[t.symbol] || t.method; }
+  onInputChange = (e) => {
+    var k = e.target.name, raw = e.target.value, v = parseFloat(raw), sym = this.state.symbol, mk = sym + '|' + this.curMethod();
+    this.setState(function (st) {
+      if (k === 'price') { var po = Object.assign({}, st.priceOv); if (raw === '' || isNaN(v)) delete po[sym]; else po[sym] = v; return { priceOv: po }; }
+      var o = Object.assign({}, st.overrides), cur = Object.assign({}, o[mk] || {});
+      if (raw === '' || isNaN(v)) delete cur[k]; else cur[k] = v; o[mk] = cur; return { overrides: o };
+    });
+  };
+  resetInputs = () => {
+    var sym = this.state.symbol, mk = sym + '|' + this.curMethod();
+    this.setState(function (st) { var o = Object.assign({}, st.overrides); delete o[mk]; var po = Object.assign({}, st.priceOv); delete po[sym]; var mo = Object.assign({}, st.methodOv); delete mo[sym]; return { overrides: o, priceOv: po, methodOv: mo }; });
+  };
+
+  openSettings = () => { var cur = {}; try { cur = JSON.parse(localStorage.getItem('wheel_live_settings_v1') || '{}'); } catch (e) {} this.setState({ settingsOpen: true, test: null, sDraft: Object.assign({ fmpKey: '', proxyUrl: '', scanLimit: 40 }, cur) }); };
+  closeSettings = () => { this.setState({ settingsOpen: false }); };
+  onSettingsField = (e) => { var k = e.target.name, v = e.target.value; this.setState(function (s) { var d = Object.assign({}, s.sDraft); d[k] = v; return { sDraft: d }; }); };
+  saveSettings = () => { if (this.LD) this.LD.saveSettings(this.state.sDraft); this.setState({ settingsOpen: false }); };
+  testConn = async () => { this.LD.saveSettings(this.state.sDraft); this.setState({ testing: true, test: null }); var r = await this.LD.testConnection(); this.setState({ testing: false, test: r }); };
+  clearCache = () => { this.LD.clearCache(); this.refreshConn(false); };
+
+  onProb = (e) => { var k = e.target.name, v = Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)); this.setState((st) => ({ scnP: Object.assign({}, st.scnP, { [k]: v }) })); };
+  ensurePeers = async (sym, rec) => {
+    var custom = loadPeerStore()[sym], list = custom || null;
+    if (!list && this.LD && this.LD.peers) { try { list = await this.LD.peers(sym, rec && rec.sector); } catch (e) { list = []; } }
+    list = list || [];
+    this.setState((st) => ({ peers: Object.assign({}, st.peers, { [sym]: list }) }));
+    this.fetchPeerRecs(list);
+  };
+  fetchPeerRecs = async (list) => {
+    if (!this.LD || !this.LD.status().any) return;
+    var q = list.filter((x) => !this.state.peerRecs[x]).slice(0, 8);
+    var w = async () => {
+      while (q.length) {
+        var x = q.shift(), r = null;
+        try { r = await this.LD.valuation(x, { rf: this.props.treasury10y ?? T10 }); } catch (e) { r = { symbol: x, err: true }; }
+        this.setState((st) => ({ peerRecs: Object.assign({}, st.peerRecs, { [x]: r }) }));
+      }
+    };
+    await Promise.all([w(), w()]);
+  };
+  setPeers(list) { var sym = this.state.symbol, st = loadPeerStore(); st[sym] = list; savePeerStore(st); this.setState((s) => ({ peers: Object.assign({}, s.peers, { [sym]: list }), peerIn: '' })); this.fetchPeerRecs(list); }
+  onPeerIn = (e) => { this.setState({ peerIn: e.target.value.toUpperCase().replace(/[^A-Z0-9.\-]/g, '') }); };
+  onPeerKey = (e) => { if (e.key === 'Enter') this.addPeer(); };
+  addPeer = () => { var x = this.state.peerIn.trim(), cur = this.state.peers[this.state.symbol] || []; if (!x || x === this.state.symbol || cur.indexOf(x) !== -1) return; this.setPeers(cur.concat([x])); };
+  removePeer = (e) => { var x = e.currentTarget.dataset.sym; this.setPeers((this.state.peers[this.state.symbol] || []).filter(function (y) { return y !== x; })); };
+  onFinTab = (e) => { this.setState({ finTab: e.currentTarget.dataset.tab }); };
+  useAutoFcf = () => {
+    var mk = this.state.symbol + '|dcf';
+    this.setState(function (st) { var o = Object.assign({}, st.overrides), c = Object.assign({}, o[mk] || {}); delete c.cf; o[mk] = c; return { overrides: o }; });
+  };
+  renderVals() {
+    var mosT = this.props.mosThreshold ?? 25;
+    var t10 = this.props.treasury10y ?? T10;
+    var t = this.findStock(this.state.symbol);
+    var mKey = this.state.methodOv[t.symbol] || t.method;
+    var m = METHODS[mKey];
+    var baseInputs = t.inputsBy ? (t.inputsBy[mKey] || {}) : (mKey === t.method ? t.inputs : {});
+    var p = Object.assign({}, baseInputs, this.state.overrides[t.symbol + '|' + mKey] || {});
+    var price = ok(this.state.priceOv[t.symbol]) ? this.state.priceOv[t.symbol] : t.price;
+    var priceOk = ok(price) && price > 0;
+    var complete = m.fields.every(function (fd) { return ok(p[fd.key]); });
+    var base = complete ? m.compute(p) : NaN;
+
+    var grid = m.row.steps.map(function (rs) {
+      return m.col.steps.map(function (cs) {
+        if (!complete) return NaN;
+        var q = Object.assign({}, p);
+        q[m.row.key] = axisVal(m.row, p[m.row.key], rs);
+        q[m.col.key] = axisVal(m.col, p[m.col.key], cs);
+        return m.compute(q);
+      });
+    });
+    var inner = [];
+    for (var i = 1; i <= 3; i++) for (var j = 1; j <= 3; j++) if (isFinite(grid[i][j])) inner.push(grid[i][j]);
+    var bear = inner.length ? Math.min.apply(null, inner) : NaN;
+    var bull = inner.length ? Math.max.apply(null, inner) : NaN;
+
+    var sens = {
+      colHeads: m.col.steps.map(function (cs) { return complete ? fmtAxis(axisVal(m.col, p[m.col.key], cs), m.col.unit) : 'n/a'; }),
+      rows: m.row.steps.map(function (rs, ri) {
+        return {
+          head: complete ? fmtAxis(axisVal(m.row, p[m.row.key], rs), m.row.unit) : 'n/a',
+          cells: grid[ri].map(function (v, ci) {
+            var isBase = ri === 2 && ci === 2;
+            return { label: money(v), bg: priceOk && isFinite(v) && v > price ? 'var(--color-accent-100)' : 'transparent', weight: isBase ? '700' : '400', outline: isBase ? '1px solid var(--color-accent-700)' : 'none' };
+          })
+        };
+      })
+    };
+
+    var ik = m.implied, lo = ik.lo, hi = ik.hi, implied = NaN;
+    if (complete && priceOk) {
+      var f = function (x) { var q = Object.assign({}, p); q[ik.key] = x; return m.compute(q) - price; };
+      var flo = f(lo), fhi = f(hi);
+      if (isFinite(flo) && isFinite(fhi) && flo * fhi < 0) {
+        for (var n = 0; n < 60; n++) { var mid = (lo + hi) / 2, fm = f(mid); if (!isFinite(fm)) break; if (fm * flo > 0) { lo = mid; flo = fm; } else hi = mid; }
+        implied = (lo + hi) / 2;
+      }
+    }
+    var fmtImp = function (v) { return !ok(v) ? 'n/a' : ik.unit === 'x' ? v.toFixed(2) + 'x' : v.toFixed(1) + '%'; };
+
+    var mos = priceOk && isFinite(base) && base > 0 ? (base - price) / base * 100 : NaN;
+    var verdict, verdictClass;
+    if (!isFinite(mos)) { verdict = 'INSUFFICIENT DATA'; verdictClass = 'tag tag-neutral'; }
+    else if (mos >= mosT) { verdict = 'UNDERVALUED'; verdictClass = 'tag tag-accent'; }
+    else if (mos >= -10) { verdict = 'NEAR FAIR VALUE'; verdictClass = 'tag tag-outline'; }
+    else { verdict = 'OVERVALUED'; verdictClass = 'tag tag-neutral'; }
+
+    var showBar = priceOk && isFinite(base);
+    var pts = [price, bear, bull, base].filter(function (v) { return ok(v); });
+    var bLo = pts.length ? Math.min.apply(null, pts) * 0.85 : 0, bHi = pts.length ? Math.max.apply(null, pts) * 1.15 : 1;
+    var pos = function (v) { return ok(v) ? (Math.max(0, Math.min(1, (v - bLo) / (bHi - bLo))) * 100).toFixed(2) + '%' : '0%'; };
+    var bar = { bandLeft: pos(bear), bandWidth: ok(bull - bear) ? ((Math.max(0, (bull - bear) / (bHi - bLo))) * 100).toFixed(2) + '%' : '0%', baseLeft: pos(base), priceLeft: pos(price), loLabel: money(bLo), hiLabel: money(bHi) };
+
+    var vsPrice = function (v) { return priceOk && isFinite(v) ? signed((v - price) / price * 100) : '—'; };
+    var vsColor = function (v) { return priceOk && isFinite(v) && v > price ? 'var(--color-accent-700)' : 'var(--color-text)'; };
+    var graham = ok(t.eps) && ok(t.bvps) && t.eps > 0 && t.bvps > 0 ? Math.sqrt(22.5 * t.eps * t.bvps) : NaN;
+    var peRev = ok(t.eps) && ok(t.pe10) ? t.eps * t.pe10 : NaN;
+    var peYrs = t.peYears != null ? t.peYears + '-yr' : '10-yr';
+    var ey = ok(t.eps) && priceOk ? t.eps / price * 100 : NaN;
+    var fcfy = ok(t.fcfps) && priceOk ? t.fcfps / price * 100 : NaN;
+    var crossChecks = [
+      { label: 'Graham Number', note: '√(22.5 × EPS × BVPS) — defensive-investor ceiling', value: money(graham), delta: vsPrice(graham), color: vsColor(graham) },
+      { label: 'P/E Mean Reversion', note: 'EPS ' + money(t.eps) + ' × ' + peYrs + ' avg P/E ' + (ok(t.pe10) ? t.pe10.toFixed(1) + 'x' : 'n/a') + (t.peSrc ? ' (' + t.peSrc + ')' : '') + ' · now ' + (ok(t.eps) && t.eps > 0 && priceOk ? (price / t.eps).toFixed(1) + 'x' : 'n/m'), value: money(peRev), delta: vsPrice(peRev), color: vsColor(peRev) },
+      { label: 'Earnings Yield vs 10-yr UST', note: 'E/P against ' + t10.toFixed(2) + '% risk-free', value: pct(ey, 2), delta: isFinite(ey) ? signed(ey - t10).replace('%', ' pp') : '—', color: ey > t10 ? 'var(--color-accent-700)' : 'var(--color-text)' },
+      { label: 'Free Cash Flow Yield', note: mKey === 'ptbv' ? 'Not meaningful for banks' : 'FCF/share ' + money(t.fcfps) + ' ÷ price', value: pct(fcfy, 2), delta: isFinite(fcfy) ? signed(fcfy - t10).replace('%', ' pp') : '—', color: isFinite(fcfy) && fcfy > t10 ? 'var(--color-accent-700)' : 'var(--color-text)' }
+    ];
+
+    var passCount = 0, applicable = 0;
+    var quality = QUALITY.map(function (d) {
+      var v = t.q ? t.q[d.key] : null; if (!ok(v)) v = null;
+      var fv = v == null ? 'n/a' : d.fmt === 'pct' ? (d.key === 'sh' && v > 0 ? '+' : '') + v.toFixed(1) + '%' : d.fmt === 'x' ? v.toFixed(1) + 'x' : String(v);
+      var hurdle = (d.dir > 0 ? '≥ ' : '≤ ') + (d.fmt === 'pct' ? d.hurdle + '%' : d.fmt === 'x' ? d.hurdle + 'x' : d.hurdle);
+      var pass = v == null ? null : d.dir > 0 ? v >= d.hurdle : v <= d.hurdle;
+      if (pass !== null) { applicable++; if (pass) passCount++; }
+      return { label: d.label, value: fv, hurdle: hurdle, mark: pass === null ? '—' : pass ? 'PASS' : 'FAIL', color: pass ? 'var(--color-accent-700)' : 'var(--color-neutral-600)' };
+    });
+
+    var srcM = t.src && t.src[mKey] ? t.src[mKey] : {};
+    var defNote = t.live ? '' : t.blank ? 'Manual entry' : 'Sample data';
+    var inputs = [{ key: 'price', label: 'Current Price ($)', step: 0.01, value: ok(price) ? price : '', note: ok(this.state.priceOv[t.symbol]) ? 'Manual override' : (t.src ? t.src.price : defNote) }]
+      .concat(m.fields.map((fd) => {
+        var ov = this.state.overrides[t.symbol + '|' + mKey] || {};
+        return { key: fd.key, label: fd.label, step: fd.step, value: ok(p[fd.key]) ? +(+p[fd.key]).toFixed(4) : '', note: ok(ov[fd.key]) ? 'Manual override' : (ok(p[fd.key]) ? (srcM[fd.key] || defNote) : 'n/a — enter manually') };
+      }));
+
+    var rationale = mKey === t.method && t.rationale ? t.rationale : (this.LD && this.LD.rationale ? this.LD.rationale[mKey] : '');
+    var uni = this.state.uni[t.symbol];
+    var indicesLabel = uni ? uni.indices.join(' · ') : (t.indices || 'Not in tracked indices');
+    var sourceNote = t.live ? 'Live · ' + t.sources.join(' + ') + ' · ' + t.years + ' fiscal yrs · ' + new Date(t.asOf).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+      : t.blank ? (this.state.connected ? 'No live data returned — values n/a' : 'No data source connected — values n/a') : 'Sample data — connect a source in Data Settings';
+    var FB = function (v) { if (v == null || !isFinite(v)) return 'n/a'; var a = Math.abs(v), sg = v < 0 ? '-' : ''; return a >= 1e12 ? sg + '$' + (a / 1e12).toFixed(2) + 'T' : a >= 1e9 ? sg + '$' + (a / 1e9).toFixed(2) + 'B' : a >= 1e6 ? sg + '$' + (a / 1e6).toFixed(0) + 'M' : sg + '$' + Math.round(a).toLocaleString(); };
+    var hist = t.hist && t.hist.length ? t.hist : null;
+    var fo = { has: false, none: true, note: t.live ? 'No annual financial statements were found for ' + t.symbol + '.' : 'Connect live data in Data Settings to see ' + t.symbol + "'s income statement, cash flow and balance sheet." };
+    if (hist) {
+      var H = hist, last = H[H.length - 1], prev = H.length > 1 ? H[H.length - 2] : null;
+      var dv = function (a, b) { return a != null && b != null && b !== 0 ? a / b : null; };
+      var dsh = function (x, k) { return dv(x[k], x.shares); };
+      var fcfOfH = function (x) { return x.fcf != null ? x.fcf : (x.ocf != null && x.capex != null ? x.ocf - x.capex : null); };
+      var DEF = {
+        income: [['Revenue', function (x) { return x.revenue; }, 'big', 1], ['Gross profit', function (x) { return x.grossProfit; }, 'big'], ['Gross margin', function (x) { return dv(x.grossProfit, x.revenue) * 100; }, 'pct', 0, 1], ['Operating income', function (x) { return x.opIncome; }, 'big'], ['Operating margin', function (x) { return dv(x.opIncome, x.revenue) * 100; }, 'pct', 0, 1], ['EBITDA', function (x) { return x.ebitda; }, 'big'], ['Net income', function (x) { return x.netIncome; }, 'big', 1], ['Net margin', function (x) { return dv(x.netIncome, x.revenue) * 100; }, 'pct', 0, 1], ['Diluted EPS', function (x) { return x.eps; }, 'ps', 1]],
+        cash: [['Operating cash flow', function (x) { return x.ocf; }, 'big', 1], ['Capital expenditures', function (x) { return x.capex != null ? -x.capex : null; }, 'big'], ['Free cash flow', fcfOfH, 'big', 1], ['FCF margin', function (x) { return dv(fcfOfH(x), x.revenue) * 100; }, 'pct', 0, 1], ['Stock-based compensation', function (x) { return x.sbc; }, 'big'], ['Dividends paid', function (x) { return x.divPaid; }, 'big'], ['Share buybacks', function (x) { return x.buyback; }, 'big'], ['Cash returned to owners', function (x) { return x.divPaid != null || x.buyback != null ? (x.divPaid || 0) + (x.buyback || 0) : null; }, 'big', 1]],
+        balance: [['Cash & equivalents', function (x) { return x.cash; }, 'big'], ['Total debt', function (x) { return x.debt; }, 'big'], ['Net debt', function (x) { return x.netDebt; }, 'big', 1], ["Shareholders' equity", function (x) { return x.equity; }, 'big', 1], ['Current ratio', function (x) { return dv(x.curAssets, x.curLiab); }, 'x', 0, 1], ['Debt / equity', function (x) { return x.equity > 0 ? dv(x.debt, x.equity) : null; }, 'x', 0, 1], ['Net debt / EBITDA', function (x) { return x.ebitda > 0 ? dv(x.netDebt, x.ebitda) : null; }, 'x', 0, 1]],
+        share: [['Revenue / share', function (x) { return dsh(x, 'revenue'); }, 'ps'], ['EPS (diluted)', function (x) { return x.eps != null ? x.eps : dsh(x, 'netIncome'); }, 'ps', 1], ['FCF / share', function (x) { return dv(fcfOfH(x), x.shares); }, 'ps', 1], ['Dividend / share', function (x) { return x.dps; }, 'ps'], ['Book value / share', function (x) { return dsh(x, 'equity'); }, 'ps'], ['Diluted shares', function (x) { return x.shares; }, 'cnt']]
+      };
+      var fmtF = function (v, k) { if (v == null || !isFinite(v)) return '—'; return k === 'big' ? FB(v) : k === 'pct' ? v.toFixed(1) + '%' : k === 'x' ? v.toFixed(2) + 'x' : k === 'ps' ? money(v) : (v / 1e9).toFixed(3) + 'B'; };
+      var tab = DEF[this.state.finTab] ? this.state.finTab : 'income';
+      var frows = DEF[tab].map(function (d) {
+        var vals = H.map(function (x) { var v = d[1](x); return v != null && isFinite(v) ? v : null; });
+        var mx = Math.max.apply(null, vals.map(function (v) { return v == null ? 0 : Math.abs(v); })) || 1;
+        var fv = vals.find(function (v) { return v != null; }), li = vals.length - 1, lv = vals[li];
+        var fi = vals.findIndex(function (v) { return v != null; }), n = li - fi, trend = '—', tc = 'var(--color-text)';
+        if (lv != null && fv != null && n > 0) {
+          if (d[2] === 'pct' || d[2] === 'x') { var ch = lv - fv; trend = (ch >= 0 ? '+' : '') + ch.toFixed(d[2] === 'x' ? 2 : 1) + (d[2] === 'x' ? 'x' : ' pts'); }
+          else if (fv > 0 && lv > 0) { var cg = (Math.pow(lv / fv, 1 / n) - 1) * 100; trend = (cg >= 0 ? '+' : '') + cg.toFixed(1) + '% / yr'; tc = cg > 0 ? '#C23B00' : 'var(--color-text)'; }
+          else trend = lv > fv ? 'Improving' : 'Declining';
+        }
+        return { label: d[0], w: d[3] ? '700' : '400', pad: d[4] ? '18px' : '8px', lc: d[4] ? 'var(--color-neutral-700)' : 'var(--color-text)', trend: trend, tc: tc,
+          cells: vals.map(function (v, i) { return { v: fmtF(v, d[2]), w: i === li ? '600' : '400', color: v != null && v < 0 ? '#C23B00' : 'var(--color-text)', bar: i === li ? '#FF4F00' : (v != null && v < 0 ? 'var(--color-neutral-500)' : '#111'), bw: v == null || d[2] === 'pct' && false ? '0%' : (Math.abs(v) / mx * 100).toFixed(1) + '%' }; }) };
+      });
+      var mcap = ok(t.marketCapB) ? t.marketCapB * 1e9 : (ok(price) && t.shares ? price * t.shares : null);
+      var ev = mcap != null && last.netDebt != null ? mcap + last.netDebt : null;
+      var lf = fcfOfH(last), yoy = prev && prev.revenue > 0 && last.revenue != null ? (last.revenue / prev.revenue - 1) * 100 : null;
+      var nde = last.ebitda > 0 && last.netDebt != null ? last.netDebt / last.ebitda : null;
+      var kpis = [
+        { label: 'Revenue · FY' + last.year, value: FB(last.revenue), note: ok(yoy) ? (yoy >= 0 ? '+' : '') + yoy.toFixed(1) + '% vs prior year' : '', noteColor: ok(yoy) && yoy > 0 ? '#C23B00' : 'var(--color-neutral-700)' },
+        { label: 'Net Margin', value: last.revenue ? pct(dv(last.netIncome, last.revenue) * 100) : 'n/a', note: last.revenue && last.opIncome != null ? 'Operating ' + pct(last.opIncome / last.revenue * 100) : '', noteColor: 'var(--color-neutral-700)' },
+        { label: 'Free Cash Flow', value: FB(lf), note: lf != null && last.revenue ? pct(lf / last.revenue * 100) + ' of revenue' : '', noteColor: 'var(--color-neutral-700)' },
+        { label: 'Net Debt', value: last.netDebt != null && last.netDebt < 0 ? FB(-last.netDebt) + ' net cash' : FB(last.netDebt), note: ok(nde) ? (nde <= 0 ? 'More cash than debt' : nde.toFixed(1) + 'x EBITDA') : '', noteColor: ok(nde) && nde > 3 ? '#C23B00' : 'var(--color-neutral-700)' },
+        { label: 'Market Cap', value: FB(mcap), note: t.shares ? (t.shares / 1e9).toFixed(2) + 'B shares' : '', noteColor: 'var(--color-neutral-700)' },
+        { label: 'Enterprise Value', value: FB(ev), note: ev != null && last.ebitda > 0 ? (ev / last.ebitda).toFixed(1) + 'x EBITDA' : '', noteColor: 'var(--color-neutral-700)' }
+      ];
+      var lastDps = last.dps != null ? last.dps : t.dps;
+      var mult = [
+        { label: 'P / E', value: ok(price) && last.eps > 0 ? (price / last.eps).toFixed(1) + 'x' : 'n/m' },
+        { label: 'P / FCF', value: mcap && lf > 0 ? (mcap / lf).toFixed(1) + 'x' : 'n/m' },
+        { label: 'EV / EBITDA', value: ev != null && last.ebitda > 0 ? (ev / last.ebitda).toFixed(1) + 'x' : 'n/m' },
+        { label: 'P / Book', value: mcap && last.equity > 0 ? (mcap / last.equity).toFixed(2) + 'x' : 'n/m' },
+        { label: 'P / Sales', value: mcap && last.revenue > 0 ? (mcap / last.revenue).toFixed(2) + 'x' : 'n/m' },
+        { label: 'FCF Yield', value: mcap && lf != null ? pct(lf / mcap * 100) : 'n/a' },
+        { label: 'Div Yield', value: ok(price) && lastDps > 0 ? pct(lastDps / price * 100, 2) : 'None' },
+        { label: 'Payout Ratio', value: last.divPaid > 0 && last.netIncome > 0 ? pct(last.divPaid / last.netIncome * 100, 0) : 'n/a' }
+      ];
+      var TABS = [['income', 'Income'], ['cash', 'Cash Flow'], ['balance', 'Balance Sheet'], ['share', 'Per Share']];
+      fo = { has: true, none: false, title: t.name || t.symbol, sub: 'Fiscal ' + H[0].year + '–' + last.year + ' · annual filings · ' + (t.sources || []).filter(function (x) { return x !== 'Tradier'; }).join(' + '),
+        tabs: TABS.map(function (x) { return { key: x[0], label: x[1], cls: 'seg-opt' + (x[0] === tab ? ' active' : '') }; }),
+        kpis: kpis, years: H.map(function (x) { return 'FY' + x.year; }), rows: frows, mult: mult };
+    }
+    var fbx = t.fcfBuild, ovDcf = this.state.overrides[t.symbol + '|dcf'] || {};
+    var fb = { has: false, missing: false, rows: [] };
+    if (mKey === 'dcf' && t.live) {
+      if (fbx && ok(fbx.perShare)) {
+        fb = { has: true, missing: false, overridden: ok(ovDcf.cf),
+          title: (fbx.years.length > 1 ? fbx.years.length + '-yr avg, FY' + fbx.years[fbx.years.length - 1] + '–' + fbx.years[0] : 'FY' + fbx.years[0]),
+          rows: [
+            { label: 'Operating cash flow', v: FB(fbx.ocf), w: '400', c: 'var(--color-text)' },
+            { label: '− Capital expenditures', v: FB(fbx.capex), w: '400', c: 'var(--color-text)' },
+            { label: '= Free cash flow', v: FB(fbx.fcf), w: '700', c: 'var(--color-text)' },
+            { label: '− Stock-based compensation', v: FB(fbx.sbc || 0), w: '400', c: 'var(--color-text)' },
+            { label: '= Owner free cash flow', v: FB(fbx.fcf - (fbx.sbc || 0)), w: '700', c: 'var(--color-text)' },
+            { label: '÷ Diluted shares', v: fbx.shares ? (fbx.shares / 1e9).toFixed(3) + 'B' : 'n/a', w: '400', c: 'var(--color-text)' },
+            { label: '= FCF / share (used in model)', v: money(fbx.perShare), w: '800', c: '#C23B00' }
+          ],
+          note: 'Shares: ' + fbx.sharesSrc + '. Before SBC: ' + money(fbx.perShareRaw) + '/share. SBC is a real cost to owners (dilution), so modern practice deducts it.' + (ok(ovDcf.cf) ? ' You have overridden this value above.' : '') };
+      } else fb = { has: false, missing: true, rows: [] };
+    }
+    var scn = { has: false, none: true, cols: [], weighted: '—', wNote: '', sub: '' };
+    if (complete && SCN_T[mKey]) {
+      var P = this.state.scnP, tr = SCN_T[mKey];
+      var mk = function (key, name, q) {
+        var v = m.compute(q), up = ok(v) && priceOk ? (v / price - 1) * 100 : null;
+        var lines = m.fields.map(function (fd) { return { l: fd.label.replace(/ \(.*\)$/, ''), v: fmtK(fd.key, q[fd.key]), ch: q[fd.key] !== p[fd.key] }; }).filter(function (x) { return key === 'base' || x.ch; });
+        return { key: key, name: name, prob: P[key], v: v, value: ok(v) && v > 0 ? money(v) : 'n/a', upside: ok(up) ? (up >= 0 ? '+' : '') + up.toFixed(1) + '% vs price' : '', upColor: ok(up) && up > 0 ? '#C23B00' : 'var(--color-text)', lines: lines, bg: key === 'base' ? 'var(--color-surface)' : 'transparent' };
+      };
+      var qb = Object.assign({}, p, tr.bear(p)), qu = Object.assign({}, p, tr.bull(p));
+      var cols = [mk('bear', 'Bear case', qb), mk('base', 'Base case', p), mk('bull', 'Bull case', qu)];
+      var tw = 0, sw = 0; cols.forEach(function (c) { if (ok(c.v) && c.v > 0) { tw += c.prob; sw += c.prob * c.v; } });
+      var wv = tw > 0 ? sw / tw : null, wmos = ok(wv) && priceOk ? (wv - price) / wv * 100 : null;
+      scn = { has: true, none: false, cols: cols, weighted: ok(wv) ? money(wv) : 'n/a',
+        wNote: ok(wmos) ? (wmos >= 0 ? wmos.toFixed(1) + '% margin of safety' : Math.abs(wmos).toFixed(1) + '% above weighted value') + (Math.round(P.bear + P.base + P.bull) !== 100 ? ' · probabilities normalized from ' + Math.round(P.bear + P.base + P.bull) + '%' : '') : '',
+        sub: 'Bear and bull cases flex the ' + m.name.split(' (')[0] + "'s key drivers around your base inputs. Set the probability you'd assign to each." };
+    }
+    var plist = t.live ? (this.state.peers[t.symbol] || null) : STOCKS.filter(function (x) { return x.symbol !== t.symbol; }).slice(0, 5).map(function (x) { return x.symbol; });
+    var peer = { input: this.state.peerIn, chips: (plist || []).map(function (x) { return { sym: x }; }), has: false, none: true, rows: [] };
+    var precs = (plist || []).map((x) => t.live ? this.state.peerRecs[x] : STOCKS.find(function (y) { return y.symbol === x; })).filter(function (r) { return r && !r.err; });
+    var fmtR = function (mm) { var f = function (v, u) { return v == null || !isFinite(v) ? '—' : u === 'x' ? v.toFixed(1) + 'x' : u === '%' ? v.toFixed(1) + '%' : v; }; return { pe: f(mm.pe, 'x'), ev: f(mm.ev, 'x'), pfcf: f(mm.pfcf, 'x'), dy: mm.dy === 0 ? 'None' : f(mm.dy, '%'), nm: f(mm.nm, '%'), rg: f(mm.rg, '%'), roic: f(mm.roic, '%') }; };
+    if (precs.length) {
+      var selfM = peerM(Object.assign({}, t, { price: price })), pms = precs.map(peerM);
+      var med = {}; ['pe', 'ev', 'pfcf', 'dy', 'nm', 'rg', 'roic'].forEach(function (k) { med[k] = median(pms.map(function (x) { return x[k]; })); });
+      var capF = function (v) { return v == null ? '—' : v >= 1e12 ? '$' + (v / 1e12).toFixed(2) + 'T' : '$' + (v / 1e9).toFixed(1) + 'B'; };
+      var rows = [Object.assign({ sym: t.symbol, name: t.name || '', price: money(price), cap: capF(selfM.mcap), bg: 'var(--color-accent-100)', w: '600', bt: '0' }, fmtR(selfM))]
+        .concat(precs.map(function (r, i) { return Object.assign({ sym: r.symbol, name: r.name || '', price: money(r.price), cap: capF(pms[i].mcap), bg: 'transparent', w: '400', bt: '0' }, fmtR(pms[i])); }))
+        .concat([Object.assign({ sym: 'Peer median', name: precs.length + ' companies', price: '', cap: '', bg: 'transparent', w: '700', bt: '2px solid #111' }, fmtR(med))]);
+      var reads = [];
+      if (ok(selfM.pe) && ok(med.pe)) reads.push('P/E ' + (selfM.pe < med.pe ? Math.round((1 - selfM.pe / med.pe) * 100) + '% below' : Math.round((selfM.pe / med.pe - 1) * 100) + '% above') + ' the peer median');
+      if (ok(selfM.dy) && ok(med.dy) && med.dy > 0) reads.push('yield ' + (selfM.dy >= med.dy ? 'above' : 'below') + ' peers (' + selfM.dy.toFixed(2) + '% vs ' + med.dy.toFixed(2) + '%)');
+      if (ok(selfM.roic) && ok(med.roic)) reads.push('ROIC ' + (selfM.roic >= med.roic ? 'stronger' : 'weaker') + ' than peers');
+      peer = Object.assign(peer, { has: true, none: false, rows: rows, read: reads.length ? t.symbol + ': ' + reads.join(' · ') + '.' : '' });
+    }
+    var pending = (plist || []).filter((x) => t.live && !this.state.peerRecs[x]).length;
+    peer.sub = !t.live ? 'Sample peers — connect live data for the real peer group.' : plist === null ? 'Finding peers…' : !plist.length ? 'No peer list found on your data plan — add tickers manually.' : (pending ? 'Loading ' + pending + ' peer' + (pending > 1 ? 's' : '') + '… · ' : '') + 'Peers from ' + (loadPeerStore()[t.symbol] ? 'your custom list' : 'FMP / same sector') + '. Add or remove tickers to tune the group.';
+    peer.note = plist && plist.length ? 'Loading peer data…' : 'Add peer tickers above to compare valuation, yield and quality.';
+    var test = this.state.test;
+
+    return {
+      t: t, symbol: t.symbol,
+      query: this.state.query, suggestions: this.suggest(),
+      showSuggest: this.state.focused && this.state.query.trim().length > 0,
+      loading: !!this.state.loading, loadingSymbol: this.state.loading || '',
+      hasError: !!this.state.error, error: this.state.error,
+      indicesLabel: indicesLabel, sourceNote: sourceNote,
+      connected: this.state.connected,
+      dataTag: this.state.connected ? 'LIVE DATA' : 'SAMPLE DATA', dataTagClass: this.state.connected ? 'tag tag-accent' : 'tag tag-outline',
+      footerNote: t.live ? 'Fundamentals from annual 10-K filings (FMP / SEC EDGAR). Methodology: cost of equity via CAPM (10-yr Treasury + Blume-adjusted beta × 5.0% equity risk premium, bounded 7–12%); DCF and DDM run 10 years with growth fading linearly to a 2.5% terminal rate from year 6; FCF is net of stock-based compensation; EV/EBITDA uses through-cycle sector multiples. Every assumption is editable.' : 'Sample or manually entered fundamentals.',
+      method: { key: mKey, name: m.name, impliedLabel: ik.label, rowAxisLabel: m.row.label, colAxisLabel: m.col.label },
+      methodOptions: Object.keys(METHODS).map(function (k) { return { key: k, label: (k === t.method ? '● ' : '') + METHODS[k].name }; }),
+      rationale: rationale, inputs: inputs, showBar: showBar, fo: fo, fb: fb, scn: scn, peer: peer, onProb: this.onProb, onPeerIn: this.onPeerIn, onPeerKey: this.onPeerKey, addPeer: this.addPeer, removePeer: this.removePeer, onFinTab: this.onFinTab, useAutoFcf: this.useAutoFcf,
+      onQueryChange: this.onQueryChange, onQueryKey: this.onQueryKey, onQueryFocus: this.onQueryFocus, onQueryBlur: this.onQueryBlur, onPick: this.onPick,
+      onMethodChange: this.onMethodChange, refresh: this.refresh,
+      priceLabel: money(price), baseLabel: money(base), bearLabel: money(bear), bullLabel: money(bull),
+      mosLabel: isFinite(mos) ? signed(mos) : '—',
+      mosNote: !isFinite(mos) ? 'Complete the inputs to compute' : mos >= 0 ? 'Price below estimated value' : 'Price exceeds estimated value',
+      buyBelowLabel: money(base * (1 - mosT / 100)), mosThresholdLabel: mosT + '%',
+      verdict: verdict, verdictClass: verdictClass, bar: bar, sens: sens,
+      impliedLabel: fmtImp(implied), assumedLabel: fmtImp(p[ik.key]),
+      crossChecks: crossChecks, quality: quality,
+      qualityPassLabel: passCount + ' of ' + applicable + ' hurdles cleared',
+      onInputChange: this.onInputChange, resetInputs: this.resetInputs,
+      settingsOpen: this.state.settingsOpen, sDraft: this.state.sDraft, onSettingsField: this.onSettingsField,
+      openSettings: this.openSettings, closeSettings: this.closeSettings, saveSettings: this.saveSettings, testConn: this.testConn, clearCache: this.clearCache,
+      testLabel: this.state.testing ? 'Testing…' : 'Test Connection', hasTest: !!test,
+      testRows: test ? [{ label: 'FMP', value: test.fmp }, { label: 'Proxy', value: test.proxy }, { label: 'Tradier', value: test.tradier }, { label: 'SEC EDGAR', value: test.sec }] : []
+    };
+  }
+}
+
+</script>
+</body>
+</html>

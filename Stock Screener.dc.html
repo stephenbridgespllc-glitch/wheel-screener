@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/industry-e2648902-d6e6-4bc5-b1ff-d0fd94fd6c60/styles.css">
+  <link rel="stylesheet" href="cy-theme.css">
+  <script src="_ds/industry-e2648902-d6e6-4bc5-b1ff-d0fd94fd6c60/_ds_bundle.js"></script>
+  <script src="liveData.js?v=11"></script>
+  <style>
+    body { margin: 0; }
+    a { color: var(--color-accent-700); }
+    a:hover { color: var(--color-accent-900); }
+  </style>
+</helmet>
+
+<div class="cy-shell">
+  <aside class="cy-side">
+    <a href="Home.dc.html" class="cy-brand">Compound<br>Yield<span>.</span></a>
+    <nav class="cy-index">
+      <a href="Stock%20Screener.dc.html" class="cy-link is-active"><span>01</span>Stock Screener</a>
+      <a href="Stock%20Valuation.dc.html" class="cy-link"><span>02</span>Value</a>
+      <a href="Dividend%20Calculator.dc.html" class="cy-link"><span>03</span>Dividend Calculator</a>
+      <a href="Compound%20Calculator.dc.html" class="cy-link"><span>04</span>Compound Calculator</a>
+      <a href="Portfolio.dc.html" class="cy-link"><span>05</span>Portfolio</a>
+      <a href="Options%20Guide.dc.html" class="cy-link"><span>06</span>Options Guide</a>
+    </nav>
+    <div class="cy-foot"><i></i>Research tools for long-term investors. Not investment advice.</div>
+  </aside>
+  <div class="cy-main">
+
+  <header class="cy-top">
+    <div class="cy-pagetitle"><span class="cy-num">01</span><span>Stock Screener</span></div>
+    <div style="display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap">
+      <span class="{{ dataTagClass }}" style="font-size:11px;letter-spacing:0.08em">{{ dataTag }}</span>
+      <sc-if value="{{ live }}" hint-placeholder-val="{{ false }}">
+        <button class="btn btn-ghost" onClick="{{ reload }}">Refresh</button>
+      </sc-if>
+      <button class="btn btn-secondary" onClick="{{ openSettings }}">Data Settings</button>
+    </div>
+  </header>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);padding:var(--space-3) var(--space-6);border-bottom:1px solid var(--color-neutral-300);flex-wrap:wrap">
+    <div class="seg">
+      <button class="{{ seg.sp500 }}" data-universe="sp500" onClick="{{ onUniverseClick }}">S&amp;P 500</button>
+      <button class="{{ seg.ndx }}" data-universe="ndx" onClick="{{ onUniverseClick }}">Nasdaq-100</button>
+      <button class="{{ seg.dji }}" data-universe="dji" onClick="{{ onUniverseClick }}">Dow 30</button>
+      <button class="{{ seg.all }}" data-universe="all" onClick="{{ onUniverseClick }}">All US &gt; $1B</button>
+      <button class="{{ seg.watchlist }}" data-universe="watchlist" onClick="{{ onUniverseClick }}">Watchlist</button>
+    </div>
+    <input class="input" type="text" placeholder="Search any ticker or company — press Enter" value="{{ search }}" onChange="{{ onSearch }}" onKeyDown="{{ onSearchKey }}" style="width:320px">
+  </div>
+
+  <sc-if value="{{ showWatchlist }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-6);border-bottom:1px solid var(--color-neutral-300);flex-wrap:wrap;font-size:13px">
+      <span style="color:var(--color-neutral-700);text-transform:uppercase;letter-spacing:0.06em;font-size:11px">Watchlist</span>
+      <sc-for list="{{ watchlistChips }}" as="chip" hint-placeholder-count="5">
+        <span class="tag tag-outline" style="display:inline-flex;align-items:center;gap:6px">
+          {{ chip.symbol }}
+          <span onClick="{{ onWatchlistRemove }}" data-symbol="{{ chip.symbol }}" style="cursor:pointer;font-weight:700">&times;</span>
+        </span>
+      </sc-for>
+      <input class="input" type="text" placeholder="Add symbol" value="{{ wlInput }}" onChange="{{ onWlInput }}" onKeyDown="{{ onWlKey }}" style="width:120px;text-transform:uppercase">
+      <button class="btn btn-secondary" onClick="{{ onWatchlistAdd }}">Add</button>
+    </div>
+  </sc-if>
+
+  <div style="display:flex;flex:1;flex-wrap:wrap;align-items:flex-start">
+    <aside class="card blueprint" style="flex:0 0 280px;width:280px;min-width:260px;margin:var(--space-4);padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-4);position:relative;box-sizing:border-box">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <div class="card-kicker" style="font-size:11px;letter-spacing:0.08em">FILTERS</div>
+        <div style="font-size:11px;color:var(--color-neutral-600)">Blank = any</div>
+      </div>
+
+      <div class="field">
+        <label>Sector</label>
+        <select class="input" name="sector" value="{{ draft.sector }}" onChange="{{ onDraftChange }}">
+          <option value="">All sectors</option>
+          <sc-for list="{{ sectors }}" as="sec" hint-placeholder-count="8">
+            <option value="{{ sec }}">{{ sec }}</option>
+          </sc-for>
+        </select>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+        <div style="font-family:var(--font-heading);font-size:15px;color:var(--color-accent-700);border-bottom:1px solid var(--color-neutral-300);padding-bottom:4px;letter-spacing:-0.025em">Price &amp; Size</div>
+        <div style="display:flex;gap:var(--space-2)">
+          <div class="field" style="flex:1"><label>Price Min ($)</label><input class="input" type="number" placeholder="Any" name="priceMin" value="{{ draft.priceMin }}" onChange="{{ onDraftChange }}"></div>
+          <div class="field" style="flex:1"><label>Price Max ($)</label><input class="input" type="number" placeholder="Any" name="priceMax" value="{{ draft.priceMax }}" onChange="{{ onDraftChange }}"></div>
+        </div>
+        <div class="field">
+          <label>Company Size</label>
+          <select class="input" name="size" value="{{ draft.size }}" onChange="{{ onDraftChange }}">
+            <option value="">Any size</option>
+            <option value="mega">Mega cap ($200B+)</option>
+            <option value="large">Large cap ($10B+)</option>
+            <option value="mid">Mid cap ($2B–$10B)</option>
+            <option value="small">Small cap (under $2B)</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+        <div style="font-family:var(--font-heading);font-size:15px;color:var(--color-accent-700);border-bottom:1px solid var(--color-neutral-300);padding-bottom:4px;letter-spacing:-0.025em">Income</div>
+        <div class="field"><label>Dividend Yield Min (%)</label><input class="input" type="number" step="0.25" placeholder="Any" name="divMin" value="{{ draft.divMin }}" onChange="{{ onDraftChange }}"></div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+        <div style="font-family:var(--font-heading);font-size:15px;color:var(--color-accent-700);border-bottom:1px solid var(--color-neutral-300);padding-bottom:4px;letter-spacing:-0.025em">Risk &amp; Momentum</div>
+        <div class="field"><label>Max Volatility (Beta)</label><input class="input" type="number" step="0.1" placeholder="Any" name="betaMax" value="{{ draft.betaMax }}" onChange="{{ onDraftChange }}"><div style="font-size:10px;color:var(--color-neutral-600);margin-top:2px">1.0 moves with the market; lower is steadier</div></div>
+        <div style="display:flex;gap:var(--space-2)">
+          <div class="field" style="flex:1"><label>RSI Min</label><input class="input" type="number" step="5" placeholder="Any" name="rsiMin" value="{{ draft.rsiMin }}" onChange="{{ onDraftChange }}"></div>
+          <div class="field" style="flex:1"><label>RSI Max</label><input class="input" type="number" step="5" placeholder="Any" name="rsiMax" value="{{ draft.rsiMax }}" onChange="{{ onDraftChange }}"></div>
+        </div>
+        <div style="font-size:10px;color:var(--color-neutral-600);margin-top:-4px">RSI (14-day): under 30 oversold, over 70 overbought</div>
+        <div class="field"><label>Below 52-Week High, at least (%)</label><input class="input" type="number" step="5" placeholder="Any" name="offHighMin" value="{{ draft.offHighMin }}" onChange="{{ onDraftChange }}"></div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+        <div style="font-family:var(--font-heading);font-size:15px;color:var(--color-accent-700);border-bottom:1px solid var(--color-neutral-300);padding-bottom:4px;letter-spacing:-0.025em">Trading</div>
+        <div class="field"><label>Avg Daily Volume Min (M shares)</label><input class="input" type="number" step="0.5" placeholder="Any" name="volMin" value="{{ draft.volMin }}" onChange="{{ onDraftChange }}"></div>
+        <div class="field"><label>Exclude Earnings Within (days)</label><input class="input" type="number" placeholder="Off" name="earnExclude" value="{{ draft.earnExclude }}" onChange="{{ onDraftChange }}"></div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+        <button class="btn btn-primary btn-block" onClick="{{ applyFilters }}">Apply Filters</button>
+        <button class="btn btn-ghost btn-block" onClick="{{ resetFilters }}">Reset Filters</button>
+      </div>
+    </aside>
+
+    <section style="flex:1;min-width:0;padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3);box-sizing:border-box">
+      <sc-if value="{{ detailMode }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:var(--space-6)">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap">
+            <button class="btn btn-ghost" onClick="{{ closeDetail }}">&larr; Back to results</button>
+            <span style="font-size:12px;color:var(--color-neutral-600)">{{ dv.status }}</span>
+          </div>
+          <sc-if value="{{ dv.hasErr }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:var(--space-2) var(--space-3);border:1px solid var(--color-neutral-500);font-size:12px">{{ dv.err }}</div>
+          </sc-if>
+
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:var(--space-4);flex-wrap:wrap;border-bottom:1px solid var(--color-neutral-300);padding-bottom:var(--space-4)">
+            <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-neutral-700)">{{ dv.kicker }}</div>
+              <div style="font-family:var(--font-heading);font-size:40px;font-weight:800;line-height:1;letter-spacing:-0.025em">{{ dv.symbol }} <span style="font-weight:400;font-size:28px;color:var(--color-neutral-700)">{{ dv.name }}</span></div>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:var(--space-3)">
+              <span style="font-family:var(--font-heading);font-size:40px;font-weight:800;line-height:1;letter-spacing:-0.025em">{{ dv.price }}</span>
+              <span style="font-size:16px;font-weight:600;color:{{ dv.chgColor }}">{{ dv.chg }}</span>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-wrap:wrap;gap:var(--space-6);align-items:stretch">
+            <div class="card blueprint" style="flex:2 1 520px;min-width:0;position:relative;padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3)">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-3);flex-wrap:wrap">
+                <div style="display:flex;flex-direction:column;gap:2px">
+                  <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-neutral-700)">{{ chart.date }}</div>
+                  <div style="display:flex;align-items:baseline;gap:var(--space-2);flex-wrap:wrap">
+                    <span style="font-family:var(--font-heading);font-size:28px;font-weight:800;letter-spacing:-0.025em">{{ chart.price }}</span>
+                    <span style="font-size:13px;font-weight:600;color:{{ chart.chgColor }}">{{ chart.chg }}</span>
+                  </div>
+                </div>
+                <div class="seg">
+                  <button class="{{ rangeSeg.m1 }}" data-range="1M" onClick="{{ onRangeClick }}">1M</button>
+                  <button class="{{ rangeSeg.m6 }}" data-range="6M" onClick="{{ onRangeClick }}">6M</button>
+                  <button class="{{ rangeSeg.y1 }}" data-range="1Y" onClick="{{ onRangeClick }}">1Y</button>
+                  <button class="{{ rangeSeg.y5 }}" data-range="5Y" onClick="{{ onRangeClick }}">5Y</button>
+                </div>
+              </div>
+              <sc-if value="{{ chart.has }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <div style="display:flex">
+                    <div onMouseMove="{{ onChartMove }}" onMouseLeave="{{ onChartLeave }}" style="position:relative;flex:1;height:300px;cursor:crosshair;border-left:1px solid var(--color-neutral-400);border-bottom:1px solid var(--color-neutral-400)">
+                      <div style="position:absolute;left:0;right:0;top:50%;border-top:1px dashed var(--color-neutral-300)"></div>
+                      <svg viewBox="0 0 1000 300" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible">
+                        <path d="{{ chart.area }}" style="fill:var(--color-accent-100)"></path>
+                        <path d="{{ chart.line }}" style="fill:none;stroke:var(--color-accent-700);stroke-width:1.75;vector-effect:non-scaling-stroke"></path>
+                      </svg>
+                      <sc-if value="{{ chart.hoverOn }}" hint-placeholder-val="{{ false }}">
+                        <div style="position:absolute;top:0;bottom:0;width:1px;background:var(--color-neutral-600);pointer-events:none;left:{{ chart.hx }}"></div>
+                        <div style="position:absolute;width:9px;height:9px;margin:-6px 0 0 -6px;border:2px solid var(--color-accent-700);background:var(--color-bg);pointer-events:none;left:{{ chart.hx }};top:{{ chart.hy }}"></div>
+                      </sc-if>
+                    </div>
+                    <div style="width:68px;display:flex;flex-direction:column;justify-content:space-between;font-size:11px;color:var(--color-neutral-600);padding-left:8px;box-sizing:border-box"><span>{{ chart.max }}</span><span>{{ chart.min }}</span></div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--color-neutral-600);padding-right:68px"><span>{{ chart.start }}</span><span>Hover to scan prices</span><span>{{ chart.end }}</span></div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ chart.none }}" hint-placeholder-val="{{ true }}">
+                <div style="height:300px;display:flex;align-items:center;justify-content:center;border:1px solid var(--color-neutral-300);font-size:13px;color:var(--color-neutral-600)">{{ chart.note }}</div>
+              </sc-if>
+            </div>
+
+            <div class="card blueprint" style="flex:1 1 300px;min-width:0;position:relative;padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3)">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div class="card-kicker">ABOUT</div>
+              <p style="margin:0;font-size:13px;line-height:1.6;color:var(--color-neutral-800);text-wrap:pretty">{{ dv.bio }}</p>
+              <sc-if value="{{ dv.hasBioSrc }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:var(--color-neutral-600)">Source: {{ dv.bioSrc }}</div>
+              </sc-if>
+              <div style="display:flex;flex-direction:column">
+                <sc-for list="{{ dv.facts }}" as="f" hint-placeholder-count="4">
+                  <div style="display:flex;justify-content:space-between;gap:var(--space-3);border-bottom:1px solid var(--color-neutral-300);padding:5px 0;font-size:12px"><span style="color:var(--color-neutral-700)">{{ f.label }}</span><span style="font-weight:600;text-align:right;overflow-wrap:anywhere">{{ f.value }}</span></div>
+                </sc-for>
+              </div>
+              <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+                <a class="btn btn-primary blueprint" href="{{ dv.irUrl }}" target="_blank" rel="noopener" style="position:relative;text-decoration:none"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>Investor Relations &#8599;</a>
+                <sc-if value="{{ dv.hasSite }}" hint-placeholder-val="{{ false }}">
+                  <a class="btn btn-secondary" href="{{ dv.siteUrl }}" target="_blank" rel="noopener" style="text-decoration:none">Website &#8599;</a>
+                </sc-if>
+                <a class="btn btn-ghost" href="{{ dv.secUrl }}" target="_blank" rel="noopener" style="text-decoration:none">SEC Filings &#8599;</a>
+              </div>
+              <div class="card-kicker" style="margin-top:var(--space-2)">KEY STATS</div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-3)">
+                <sc-for list="{{ dv.stats }}" as="st" hint-placeholder-count="6">
+                  <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-neutral-700)">{{ st.label }}</span><span style="font-size:14px;font-weight:600">{{ st.value }}</span></div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <div class="card blueprint" style="position:relative;padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3)">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-3);flex-wrap:wrap">
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <div class="card-kicker">REVENUE VS NET INCOME</div>
+                <div style="font-size:12px;color:var(--color-neutral-700)">{{ fin.sub }}</div>
+              </div>
+              <div style="display:flex;gap:var(--space-6);flex-wrap:wrap;align-items:flex-end">
+                <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-neutral-700)">Revenue CAGR</span><span style="font-size:15px;font-weight:600">{{ fin.cagr }}</span></div>
+                <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-neutral-700)">Latest Net Margin</span><span style="font-size:15px;font-weight:600">{{ fin.margin }}</span></div>
+                <div style="display:flex;gap:var(--space-3);font-size:12px;align-items:center">
+                  <span style="display:inline-flex;align-items:center;gap:6px"><i style="width:12px;height:12px;background:var(--color-accent-300);display:inline-block"></i>Revenue</span>
+                  <span style="display:inline-flex;align-items:center;gap:6px"><i style="width:12px;height:12px;background:var(--color-accent-700);display:inline-block"></i>Net income</span>
+                </div>
+              </div>
+            </div>
+            <sc-if value="{{ fin.has }}" hint-placeholder-val="{{ false }}">
+              <div style="position:relative;height:240px;margin-top:var(--space-6)">
+                <div style="position:absolute;left:0;right:0;border-top:1px solid var(--color-neutral-500);top:{{ fin.zero }}"></div>
+                <div style="position:absolute;inset:0;display:flex">
+                  <sc-for list="{{ fin.bars }}" as="b" hint-placeholder-count="5">
+                    <div style="position:relative;flex:1;height:100%">
+                      <div style="position:absolute;left:calc(50% - 46px);width:40px;background:var(--color-accent-300);transition:top 0.4s ease, height 0.4s ease;top:{{ b.rTop }};height:{{ b.rH }}"></div>
+                      <div style="position:absolute;left:calc(50% - 56px);width:60px;text-align:center;font-size:11px;color:var(--color-neutral-700);top:{{ b.rLabelTop }}">{{ b.rLabel }}</div>
+                      <div style="position:absolute;left:calc(50% + 6px);width:40px;transition:top 0.4s ease, height 0.4s ease;top:{{ b.nTop }};height:{{ b.nH }};background:{{ b.nFill }}"></div>
+                      <div style="position:absolute;left:calc(50% - 4px);width:60px;text-align:center;font-size:11px;font-weight:600;top:{{ b.nLabelTop }}">{{ b.nLabel }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="display:flex;margin-top:var(--space-2)">
+                <sc-for list="{{ fin.bars }}" as="b" hint-placeholder-count="5">
+                  <div style="flex:1;text-align:center;display:flex;flex-direction:column;gap:2px"><span style="font-size:12px;font-weight:600">{{ b.year }}</span><span style="font-size:11px;color:var(--color-neutral-600)">{{ b.margin }}</span></div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ fin.none }}" hint-placeholder-val="{{ true }}">
+              <div style="height:200px;display:flex;align-items:center;justify-content:center;border:1px solid var(--color-neutral-300);font-size:13px;color:var(--color-neutral-600)">{{ fin.note }}</div>
+            </sc-if>
+          </div>
+
+          <div class="card" style="padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-4)">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:var(--space-3);flex-wrap:wrap">
+              <div class="card-kicker">DIVIDENDS &amp; KEY DATES</div>
+              <span class="{{ ddiv.tagCls }}">{{ ddiv.tag }}</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));border-top:1px solid #111;border-left:1px solid #111">
+              <sc-for list="{{ ddiv.dates }}" as="dd" hint-placeholder-count="3">
+                <div style="padding:var(--space-3);border-right:1px solid #111;border-bottom:1px solid #111;display:flex;flex-direction:column;gap:2px">
+                  <span style="font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--color-neutral-700)">{{ dd.label }}</span>
+                  <span style="font-family:var(--font-heading);font-size:24px;font-weight:800;letter-spacing:-0.03em">{{ dd.value }}</span>
+                  <span style="font-size:11px;color:{{ dd.noteColor }}">{{ dd.note }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <sc-if value="{{ ddiv.pays }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;gap:var(--space-6);flex-wrap:wrap;align-items:stretch">
+                <div style="flex:2 1 420px;min-width:0;display:flex;flex-direction:column;gap:6px">
+                  <span style="font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.05em">Dividend per share · {{ ddiv.range }}</span>
+                  <div style="height:170px;display:flex;align-items:flex-end;gap:6px;border-bottom:1px solid #111">
+                    <sc-for list="{{ ddiv.bars }}" as="b" hint-placeholder-count="10">
+                      <div style="flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:4px">
+                        <span style="font-family:var(--font-mono);font-size:10px;text-align:center;white-space:nowrap">{{ b.v }}</span>
+                        <div style="transition:height 0.4s ease;height:{{ b.h }};background:{{ b.bg }}"></div>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <div style="display:flex;gap:6px">
+                    <sc-for list="{{ ddiv.bars }}" as="b" hint-placeholder-count="10">
+                      <span style="flex:1;min-width:0;text-align:center;font-family:var(--font-mono);font-size:10px;color:{{ b.lc }}">{{ b.y }}</span>
+                    </sc-for>
+                  </div>
+                  <sc-if value="{{ ddiv.hasCut }}" hint-placeholder-val="{{ false }}">
+                    <div style="font-size:11px;color:#C23B00">{{ ddiv.cutNote }}</div>
+                  </sc-if>
+                </div>
+                <div style="flex:1 1 260px;min-width:0;display:grid;grid-template-columns:1fr 1fr;align-content:start;border-top:1px solid #111;border-left:1px solid #111">
+                  <sc-for list="{{ ddiv.stats }}" as="st" hint-placeholder-count="6">
+                    <div style="padding:8px 10px;border-right:1px solid #111;border-bottom:1px solid #111;display:flex;flex-direction:column;gap:2px">
+                      <span style="font-family:var(--font-mono);font-size:10px;text-transform:uppercase;color:var(--color-neutral-700)">{{ st.label }}</span>
+                      <span style="font-family:var(--font-heading);font-size:20px;font-weight:800;letter-spacing:-0.02em">{{ st.value }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ ddiv.noPay }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:13px;color:var(--color-neutral-700)">{{ ddiv.note }}</div>
+            </sc-if>
+          </div>
+
+          <div class="card" style="padding:var(--space-4);display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);flex-wrap:wrap">
+            <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+              <div class="card-kicker">VALUATION</div>
+              <div style="font-size:14px;line-height:1.5;max-width:620px">See {{ dv.symbol }}'s estimated value per share, the method that fits its industry, and the full financial overview.</div>
+            </div>
+            <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+              <a class="btn btn-primary" href="Stock%20Valuation.dc.html?symbol={{ dv.symbol }}" style="text-decoration:none">Open {{ dv.symbol }} in Value &rarr;</a>
+              <a class="btn btn-secondary" href="Dividend%20Calculator.dc.html?symbol={{ dv.symbol }}" style="text-decoration:none">Model dividend income</a>
+            </div>
+          </div>
+
+          <div class="card" style="padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-4)">
+            <div class="card-kicker">{{ dnews.title }}</div>
+            <sc-if value="{{ dnews.hasHead }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <span style="font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.05em">Headlines · major business &amp; market press</span>
+                <div style="display:flex;flex-direction:column;border-top:1px solid #111">
+                <sc-for list="{{ dnews.head }}" as="n" hint-placeholder-count="5">
+                  <a href="{{ n.url }}" target="_blank" rel="noopener" style="display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:var(--space-3);align-items:baseline;padding:10px 6px;border-bottom:1px solid #111;color:#111;text-decoration:none" style-hover="background:#FF4F00">
+                    <span style="font-family:var(--font-mono);font-size:11px;text-transform:uppercase">{{ n.date }}</span>
+                    <span style="font-size:14px;font-weight:600;line-height:1.35">{{ n.title }} &#8599;</span>
+                    <span style="font-family:var(--font-mono);font-size:10px;text-transform:uppercase;color:var(--color-neutral-700);white-space:nowrap">{{ n.site }}</span>
+                  </a>
+                </sc-for>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ dnews.hasFil }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <span style="font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.05em">SEC filings · straight from EDGAR</span>
+                <div style="display:flex;flex-direction:column;border-top:1px solid #111">
+                <sc-for list="{{ dnews.fil }}" as="f" hint-placeholder-count="5">
+                  <a href="{{ f.url }}" target="_blank" rel="noopener" style="display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:var(--space-3);align-items:baseline;padding:10px 6px;border-bottom:1px solid #111;color:#111;text-decoration:none" style-hover="background:#FF4F00">
+                    <span style="font-family:var(--font-mono);font-size:11px;text-transform:uppercase">{{ f.date }}</span>
+                    <span style="font-size:14px;font-weight:600;line-height:1.35">{{ f.title }} &#8599;</span>
+                    <span style="font-family:var(--font-mono);font-size:10px;text-transform:uppercase;color:var(--color-neutral-700);white-space:nowrap">{{ f.site }}</span>
+                  </a>
+                </sc-for>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ dnews.none }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:13px;color:var(--color-neutral-700)">{{ dnews.note }}</div>
+            </sc-if>
+            <div style="display:flex;gap:var(--space-4);flex-wrap:wrap">
+              <a href="{{ dnews.more }}" target="_blank" rel="noopener" style="font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.05em">More {{ dv.symbol }} headlines &#8599;</a>
+              <a href="{{ dnews.edgar }}" target="_blank" rel="noopener" style="font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.05em">All filings on EDGAR &#8599;</a>
+            </div>
+          </div>
+
+          <div class="card blueprint" style="position:relative;padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3)">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div class="card-kicker">{{ dopt.title }}</div>
+            <sc-if value="{{ dopt.has }}" hint-placeholder-val="{{ false }}">
+              <div style="overflow-x:auto">
+                <table class="table" style="width:100%;min-width:640px">
+                  <thead>
+                    <tr>
+                      <th style="text-align:right">Call Bid</th><th style="text-align:right">Call Ask</th><th style="text-align:right">IV</th><th style="text-align:right">OI</th>
+                      <th style="text-align:center">Strike</th>
+                      <th style="text-align:right">Put Bid</th><th style="text-align:right">Put Ask</th><th style="text-align:right">IV</th><th style="text-align:right">OI</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <sc-for list="{{ dopt.chain }}" as="c" hint-placeholder-count="9">
+                      <tr style="background:{{ c.bg }}">
+                        <td style="text-align:right">{{ c.cb }}</td><td style="text-align:right">{{ c.ca }}</td><td style="text-align:right">{{ c.civ }}</td><td style="text-align:right">{{ c.coi }}</td>
+                        <td style="text-align:center;font-weight:{{ c.weight }}">{{ c.strike }}</td>
+                        <td style="text-align:right">{{ c.pb }}</td><td style="text-align:right">{{ c.pa }}</td><td style="text-align:right">{{ c.piv }}</td><td style="text-align:right">{{ c.poi }}</td>
+                      </tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+              </div>
+            </sc-if>
+            <sc-if value="{{ dopt.none }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:13px;color:var(--color-neutral-600)">{{ dopt.note }}</div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ listMode }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:var(--space-2)">
+        <div style="display:flex;align-items:baseline;gap:var(--space-3)">
+          <div style="font-family:var(--font-heading);font-size:22px;font-weight:800;letter-spacing:-0.025em">{{ countLabel }}</div>
+          <div style="font-size:13px;color:var(--color-neutral-700)">{{ subLabel }}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap">
+        <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-neutral-700);margin-right:var(--space-1)">Quick screens</span>
+        <sc-for list="{{ presets }}" as="p" hint-placeholder-count="6">
+          <button class="{{ p.cls }}" data-key="{{ p.key }}" onClick="{{ onPreset }}" style="cursor:pointer;font-family:inherit">{{ p.label }}</button>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showLookup }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap;padding:var(--space-3);border:1px solid var(--color-accent-500);background:var(--color-accent-100)">
+          <span style="font-size:13px;color:var(--color-accent-900)"><strong>{{ lookupSym }}</strong> isn't in the {{ universeLabel }} list. Look it up directly to see its chart, financials and valuation.</span>
+          <button class="btn btn-primary" onClick="{{ lookupOpen }}">View {{ lookupSym }} &rarr;</button>
+        </div>
+      </sc-if>
+      <sc-if value="{{ hasStatus }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:var(--space-2) var(--space-3);border:1px solid var(--color-accent-500);background:var(--color-accent-100);font-size:12px;color:var(--color-accent-900)">{{ statusMsg }}</div>
+      </sc-if>
+
+      <div style="overflow-x:auto;border:1px solid var(--color-neutral-300)">
+        <table class="table" style="width:100%;min-width:1200px">
+          <thead>
+            <tr>
+              <sc-for list="{{ columns }}" as="col" hint-placeholder-count="11">
+                <th onClick="{{ onSortClick }}" data-key="{{ col.key }}" title="{{ col.tip }}" style="cursor:pointer;white-space:nowrap;text-align:{{ col.align }}">{{ col.label }} {{ col.arrow }}</th>
+              </sc-for>
+            </tr>
+          </thead>
+          <sc-for list="{{ rows }}" as="row" hint-placeholder-count="8">
+            <tbody>
+              <tr onClick="{{ onRowClick }}" data-symbol="{{ row.symbol }}" style="cursor:pointer;background:{{ row.bg }}" style-hover="background:var(--color-accent-100)">
+                <td style="white-space:nowrap"><div style="font-weight:600">{{ row.symbol }}</div><div style="font-size:11px;color:var(--color-neutral-600);max-width:180px;overflow:hidden;text-overflow:ellipsis">{{ row.name }}</div></td>
+                <td style="font-size:12px;color:var(--color-neutral-700);max-width:150px">{{ row.sector }}</td>
+                <td style="text-align:right;font-weight:600">{{ row.price }}</td>
+                <td style="text-align:right;color:{{ row.chgColor }}">{{ row.chg }}</td>
+                <td style="text-align:right;white-space:nowrap"><div>{{ row.cap }}</div><div style="font-size:10px;color:var(--color-neutral-600);text-transform:uppercase;letter-spacing:0.06em">{{ row.size }}</div></td>
+                <td style="text-align:right;font-weight:600">{{ row.div }}</td>
+                <td style="text-align:right">{{ row.annDiv }}</td>
+                <td style="text-align:right">{{ row.beta }}</td>
+                <td style="min-width:170px">
+                  <sc-if value="{{ row.hasRange }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex;flex-direction:column;gap:5px">
+                      <div style="position:relative;height:4px;background:var(--color-neutral-300)"><div style="position:absolute;top:-4px;width:2px;height:12px;background:var(--color-accent-700);left:{{ row.pos }}"></div></div>
+                      <div style="display:flex;justify-content:space-between;gap:6px;font-size:10px;color:var(--color-neutral-600);white-space:nowrap"><span>{{ row.lo }}</span><span style="color:var(--color-text);font-weight:600">{{ row.off }}</span><span>{{ row.hi }}</span></div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ row.noRange }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:var(--color-neutral-600)">n/a</span></sc-if>
+                </td>
+                <td style="text-align:right;white-space:nowrap"><div style="font-weight:600;color:{{ row.rsiColor }}">{{ row.rsi }}</div><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-neutral-600)">{{ row.rsiLbl }}</div></td>
+                <td style="text-align:right">{{ row.avgVol }}</td>
+              </tr>
+            </tbody>
+          </sc-for>
+        </table>
+      </div>
+
+      <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:var(--space-6);text-align:center;color:var(--color-neutral-600);border:1px solid var(--color-neutral-300);font-size:13px">{{ emptyMsg }}</div>
+      </sc-if>
+      <sc-if value="{{ hasMoreRows }}" hint-placeholder-val="{{ false }}">
+        <button class="btn btn-secondary" onClick="{{ showMore }}" style="align-self:center">{{ moreLabel }}</button>
+      </sc-if>
+      <div style="font-size:11px;color:var(--color-neutral-600)">Yield and annual dividend are trailing 12 months. Beta measures volatility versus the S&amp;P 500. The 52-week bar marks today's price between the year's low and high. RSI is the 14-day Relative Strength Index from daily closes. Click any stock for its chart, financials, valuation and investor relations. Not investment advice.</div>
+      </sc-if>
+    </section>
+  </div>
+
+  <sc-if value="{{ settingsOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:50">
+      <div class="dialog" style="width:min(560px,92vw);display:flex;flex-direction:column;gap:var(--space-3)">
+        <div class="dialog-title">Data Settings</div>
+        <div class="dialog-body" style="display:flex;flex-direction:column;gap:var(--space-3)">
+          <div class="field"><label>Financial Modeling Prep API Key</label><input class="input" type="password" name="fmpKey" value="{{ sDraft.fmpKey }}" onChange="{{ onSettingsField }}" placeholder="Stored only in this browser — optional if set on proxy"></div>
+          <div class="field"><label>Proxy URL (Tradier + SEC EDGAR)</label><input class="input" type="text" name="proxyUrl" value="{{ sDraft.proxyUrl }}" onChange="{{ onSettingsField }}" placeholder="https://wheel-data-proxy.you.workers.dev"></div>
+          <div style="font-size:12px;line-height:1.5;color:var(--color-neutral-700)">Stock list, market cap, sector, beta and dividends come from FMP; live quotes and option chains from Tradier via the proxy. Setup steps are in <strong>proxy/README.md</strong>.</div>
+          <sc-if value="{{ hasTest }}" hint-placeholder-val="{{ false }}">
+            <table class="table" style="width:100%">
+              <tbody>
+                <sc-for list="{{ testRows }}" as="tr" hint-placeholder-count="4">
+                  <tr><td style="font-weight:600;width:110px">{{ tr.label }}</td><td>{{ tr.value }}</td></tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </sc-if>
+        </div>
+        <div class="dialog-actions" style="display:flex;gap:var(--space-2);justify-content:flex-end;flex-wrap:wrap">
+          <button class="btn btn-ghost" onClick="{{ clearCache }}">Clear Cache</button>
+          <button class="btn btn-secondary" onClick="{{ testConn }}">{{ testLabel }}</button>
+          <button class="btn btn-ghost" onClick="{{ closeSettings }}">Cancel</button>
+          <button class="btn btn-primary" onClick="{{ saveSettings }}">Save</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+var SP = 'S&P 500', NQ = 'Nasdaq-100', DJ = 'DJIA';
+var MOCK_RAW = [
+  ['AAPL', 'Apple Inc.', 'Technology', 218.50, 0.8, 3350, 52, 1.25, 0.45, 24.5, 42, 412000, 0.9, 34, [SP, NQ, DJ]],
+  ['MSFT', 'Microsoft Corp.', 'Technology', 452.10, -0.4, 3360, 21, 0.93, 0.70, 21.2, 38, 198000, 1.1, 5, [SP, NQ, DJ]],
+  ['NVDA', 'NVIDIA Corp.', 'Technology', 128.40, 2.1, 3150, 310, 1.70, 0.03, 48.0, 55, 1250000, 0.8, 27, [SP, NQ, DJ]],
+  ['JPM', 'JPMorgan Chase & Co.', 'Financial Services', 212.30, 0.3, 605, 9, 1.10, 2.20, 19.8, 30, 86000, 1.6, 48, [SP, DJ]],
+  ['KO', 'Coca-Cola Co.', 'Consumer Defensive', 71.20, -0.2, 308, 14, 0.55, 2.75, 15.8, 28, 52000, 3.4, 55, [SP, DJ]],
+  ['XOM', 'Exxon Mobil Corp.', 'Energy', 118.40, 1.2, 470, 16, 0.85, 3.25, 22.1, 33, 74000, 2.1, 48, [SP]],
+  ['PFE', 'Pfizer Inc.', 'Healthcare', 24.80, -1.1, 140, 38, 0.60, 6.80, 28.4, 61, 310000, 4.5, 40, [SP]],
+  ['TSLA', 'Tesla Inc.', 'Consumer Cyclical', 248.70, 3.4, 795, 95, 2.30, 0, 58.6, 47, 2100000, 0.5, 12, [SP, NQ]],
+  ['AMD', 'Advanced Micro Devices', 'Technology', 158.20, 1.6, 256, 48, 1.65, 0, 46.3, 52, 540000, 0.9, 9, [SP, NQ]],
+  ['F', 'Ford Motor Co.', 'Consumer Cyclical', 10.85, -0.6, 43, 45, 1.42, 5.50, 32.7, 45, 265000, 6.2, 62, [SP]],
+  ['VZ', 'Verizon Communications', 'Communication Services', 43.60, 0.1, 184, 18, 0.45, 6.20, 19.4, 25, 98000, 2.8, 51, [SP]],
+  ['DIS', 'Walt Disney Co.', 'Communication Services', 96.30, -0.9, 175, 11, 1.15, 0.95, 30.5, 52, 120000, 1.9, 6, [SP, DJ]]
+];
+function mockChain(price, iv, oi, spreadPct) {
+  var step = price < 25 ? 0.5 : price < 100 ? 1 : price < 250 ? 2.5 : 5;
+  var atm = Math.round(price / step) * step, sd = price * iv / 100 * Math.sqrt(30 / 365);
+  var out = [];
+  for (var i = -4; i <= 4; i++) {
+    var k = +(atm + i * step).toFixed(2), d = (k - price) / sd, tv = sd * 0.4 * Math.exp(-d * d / 2);
+    var mk = function (mid, ivx) { var sp = Math.max(0.01, mid * spreadPct / 100); return { bid: Math.max(0, mid - sp / 2), ask: mid + sp / 2, iv: ivx, oi: Math.round(oi / 30 * Math.exp(-d * d / 3)) }; };
+    out.push({ strike: k, atm: i === 0, call: mk(Math.max(price - k, 0) + tv, iv + Math.abs(d) * 1.5), put: mk(Math.max(k - price, 0) + tv, iv + Math.abs(d) * 1.8) });
+  }
+  return { atm: atm, chain: out };
+}
+var MOCK_ROWS = [], MOCK_OPT = {};
+(function () {
+  var exp = new Date(Date.now() + 35 * 864e5).toISOString().slice(0, 10);
+  MOCK_RAW.forEach(function (m) {
+    MOCK_ROWS.push({ symbol: m[0], name: m[1], sector: m[2], price: m[3], chg: m[4], marketCapB: m[5], avgVolumeM: m[6], volumeM: m[6] * 0.9, beta: m[7], divYield: m[8], hi52: m[3] * (1.02 + (m[5] % 7) / 20), lo52: m[3] * (0.62 + (m[6] % 5) / 20), earnDays: m[13], earnDate: null, indices: m[14] });
+    var c = mockChain(m[3], m[9], m[11], m[12]);
+    MOCK_OPT[m[0]] = { expiry: exp, dte: 35, iv30: m[9], ivRank: m[10], ivDays: 252, optVol: Math.round(m[11] * 0.15), optOI: m[11], atmStrike: c.atm, atmSpreadPct: m[12], chain: c.chain };
+  });
+})();
+
+function fmtD(d) { return d ? new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : ''; }
+function bn(v) { if (!ok(v)) return 'n/a'; var a = Math.abs(v), sg = v < 0 ? '-' : ''; return a >= 1e12 ? sg + '$' + (a / 1e12).toFixed(2) + 'T' : a >= 1e9 ? sg + '$' + (a / 1e9).toFixed(1) + 'B' : sg + '$' + (a / 1e6).toFixed(0) + 'M'; }
+function fmtIn(v, u) { if (!ok(v)) return 'n/a'; return u === '$' ? money(v) : u === '%' ? v.toFixed(2) + '%' : u === 'x' ? v.toFixed(2) + 'x' : u === '$B' ? '$' + v.toFixed(1) + 'B' : v.toFixed(2) + 'B'; }
+function trimBio(t) { t = String(t || '').trim(); if (t.length <= 720) return t; var cut = t.slice(0, 720), i = cut.lastIndexOf('. '); return (i > 300 ? cut.slice(0, i + 1) : cut + '…'); }
+function seedRand(str) { var h = 2166136261; for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return function () { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 10000) / 10000; }; }
+var RANGE_PTS = { '1M': [22, 1], '6M': [126, 1], '1Y': [252, 1], '5Y': [260, 7] };
+function mockHistory(sym, price, range) {
+  var R = RANGE_PTS[range] || RANGE_PTS['1Y'], rnd = seedRand(sym + range), out = [], p = price, d = new Date(), v = 0.016 * Math.sqrt(R[1]);
+  for (var i = 0; i < R[0]; i++) {
+    out.push({ d: d.toISOString().slice(0, 10), c: +p.toFixed(2) });
+    p = p / (1 + (rnd() - 0.485) * v * 2);
+    d = new Date(d.getTime() - R[1] * 864e5);
+    if (R[1] === 1) while (d.getDay() === 0 || d.getDay() === 6) d = new Date(d.getTime() - 864e5);
+  }
+  return out.reverse();
+}
+function mockRec(r) {
+  var rnd = seedRand(r.symbol), m = { 'Technology': 0.24, 'Financial Services': 0.28, 'Consumer Defensive': 0.22, 'Energy': 0.1, 'Healthcare': 0.15, 'Consumer Cyclical': 0.06, 'Communication Services': 0.12 }[r.sector] || 0.12;
+  var rev = r.marketCapB * 1e9 * 0.22, hist = [], y = new Date().getFullYear() - 1;
+  for (var i = 4; i >= 0; i--) { var rv = rev / Math.pow(1.07, i) * (0.95 + rnd() * 0.1); hist.push({ year: y - i, revenue: rv, netIncome: rv * m * (0.8 + rnd() * 0.4) }); }
+  var method = r.sector === 'Financial Services' ? 'ptbv' : (r.sector === 'Energy' || r.symbol === 'F') ? 'ev' : r.divYield > 2.5 ? 'ddm' : 'dcf';
+  var inputsBy = { dcf: { cf: r.price / 24, g: 7, tg: 2.5, r: 9 }, ddm: { cf: r.price * r.divYield / 100, g: 4, tg: 2.5, r: 7.5 }, ptbv: { tbv: r.price / 1.9, rote: 15, coe: 10, g: 3 }, ev: { ebitda: r.marketCapB * 0.16, mult: 6.5, nd: r.marketCapB * 0.05, sh: r.marketCapB / r.price }, asset: { tbv: r.price * 0.8, mult: 1 } };
+  return { symbol: r.symbol, name: r.name, sector: r.sector, industry: '', price: r.price, chg: r.chg, marketCapB: r.marketCapB, eps: r.price / 22, beta: r.beta, hi52: r.hi52, lo52: r.lo52, method: method, inputsBy: inputsBy, inputs: inputsBy[method], hist: hist, description: 'Sample data. Connect live data in Data Settings to load the company overview, filings-based financials and valuation.', sources: ['Sample'], mock: true };
+}
+function mockDiv(row) {
+  if (!row || !ok(row.divYield) || !(row.divYield > 0) || !ok(row.price)) return row ? { annualDiv: 0, history: [], freq: 4 } : null;
+  var a = row.price * row.divYield / 100, cy = new Date().getFullYear(), h = [];
+  for (var i = 10; i >= 1; i--) h.push({ year: cy - i, dps: a / Math.pow(1.055, i - 1) });
+  var ex = new Date(Date.now() + 19 * 864e5), pay = new Date(Date.now() + 33 * 864e5);
+  return { annualDiv: a, history: h, freq: row.symbol === 'O' ? 12 : 4, price: row.price, next: { exDate: ex.toISOString().slice(0, 10), payDate: pay.toISOString().slice(0, 10), amount: a / 4, declared: false } };
+}
+function daysTo(d) { return d ? Math.round((new Date(d + 'T12:00:00Z').getTime() - Date.now()) / 864e5) : null; }
+var EMPTY = { sector: '', priceMin: '', priceMax: '', size: '', divMin: '', betaMax: '', rsiMin: '', rsiMax: '', offHighMin: '', volMin: '', earnExclude: '' };
+function mockRsi(sym) { return Math.round((seedRand(sym + 'rsi')() * 62 + 19) * 10) / 10; }
+var SIZES = { mega: [200, null], large: [10, null], mid: [2, 10], small: [null, 2] };
+function sizeOf(v) { return !ok(v) ? '' : v >= 200 ? 'Mega cap' : v >= 10 ? 'Large cap' : v >= 2 ? 'Mid cap' : v >= 0.3 ? 'Small cap' : 'Micro cap'; }
+var PRESETS = [
+  { key: 'div', label: 'Dividend payers', f: { divMin: '0.01' } },
+  { key: 'yield', label: 'Yield 3%+', f: { divMin: '3' } },
+  { key: 'large', label: 'Large caps', f: { size: 'large' } },
+  { key: 'steady', label: 'Low volatility', f: { betaMax: '0.8' } },
+  { key: 'dip', label: '20%+ below high', f: { offHighMin: '20' } },
+  { key: 'oversold', label: 'Oversold (RSI < 30)', f: { rsiMax: '30' } },
+  { key: 'under50', label: 'Under $50', f: { priceMax: '50' } }
+];
+var COLS = [
+  { key: 'symbol', label: 'COMPANY', align: 'left' }, { key: 'sector', label: 'SECTOR', align: 'left' },
+  { key: 'price', label: 'PRICE', align: 'right' }, { key: 'chg', label: 'TODAY', align: 'right', tip: 'Price change today' },
+  { key: 'marketCapB', label: 'MKT CAP', align: 'right' }, { key: 'divYield', label: 'DIV YIELD', align: 'right', tip: 'Trailing 12-month dividend yield' },
+  { key: 'annDiv', label: 'ANNUAL DIV', align: 'right', tip: 'Dividends paid per share over the last 12 months' }, { key: 'beta', label: 'BETA', align: 'right', tip: 'Volatility vs. the S&P 500 (1.0 = market)' },
+  { key: 'offHigh', label: '52-WEEK RANGE', align: 'left', tip: 'Sort by distance below the 52-week high' }, { key: 'rsi', label: 'RSI (14)', align: 'right', tip: '14-day Relative Strength Index: above 70 overbought, below 30 oversold' }, { key: 'avgVolumeM', label: 'AVG VOLUME', align: 'right', tip: 'Average daily shares traded' }
+];
+var WL_KEY = 'stockscreener_watchlist_v1';
+function loadWL() { try { var w = JSON.parse(localStorage.getItem(WL_KEY)); if (Array.isArray(w)) return w; } catch (e) {} return ['AAPL', 'MSFT', 'KO', 'JPM', 'XOM']; }
+function whenLD() { return new Promise(function (res) { (function chk() { if (window.LiveData) res(window.LiveData); else setTimeout(chk, 50); })(); }); }
+function n(v) { return v === '' || v == null || !isFinite(+v) ? null : +v; }
+function ok(v) { return v != null && isFinite(v); }
+function money(v) { return ok(v) ? '$' + v.toFixed(2) : 'n/a'; }
+function cap(v) { return !ok(v) ? 'n/a' : v >= 1000 ? '$' + (v / 1000).toFixed(2) + 'T' : v >= 1 ? '$' + v.toFixed(1) + 'B' : '$' + Math.round(v * 1000) + 'M'; }
+function vol(v) { return !ok(v) ? 'n/a' : v >= 1 ? v.toFixed(1) + 'M' : Math.round(v * 1000) + 'K'; }
+function count(v) { return !ok(v) ? 'n/a' : v >= 1e6 ? (v / 1e6).toFixed(2) + 'M' : v >= 1e3 ? (v / 1e3).toFixed(1) + 'K' : String(Math.round(v)); }
+function pct(v, d) { return ok(v) ? v.toFixed(d == null ? 1 : d) + '%' : 'n/a'; }
+function rng(v, lo, hi) { lo = n(lo); hi = n(hi); if (lo == null && hi == null) return true; if (!ok(v)) return false; return (lo == null || v >= lo) && (hi == null || v <= hi); }
+var INDEX_TAG = { sp500: SP, ndx: NQ, dji: DJ };
+
+class Component extends DCLogic {
+  state = {
+    universe: 'sp500', watchlist: loadWL(), wlInput: '', search: '',
+    draft: Object.assign({}, EMPTY), applied: Object.assign({}, EMPTY),
+    sortKey: 'marketCapB', sortDir: 'desc', expanded: null, limit: 100, preset: '', rsi: {}, rsiQ: {},
+    live: false, proxy: false, rows: null, opt: {}, optQueue: {}, loadingList: false, msg: '', optMsg: '', detail: null, dRecs: {}, dHist: {}, dRange: '1Y', dHover: null, dBios: {}, dLoad: {}, dErr: '', dNews: {}, dDiv: {},
+    settingsOpen: false, sDraft: { fmpKey: '', proxyUrl: '', scanLimit: 40 }, test: null, testing: false
+  };
+
+  async componentDidMount() {
+    this.LD = await whenLD();
+    this.onSettingsEvt = () => this.reload();
+    window.addEventListener('livedata-settings', this.onSettingsEvt);
+    this.reload();
+  }
+  componentWillUnmount() { if (this.onSettingsEvt) window.removeEventListener('livedata-settings', this.onSettingsEvt); this.listTok = -1; this.optTok = -1; }
+
+  reload = async () => {
+    if (!this.LD) return;
+    var st = this.LD.status();
+    this.optTok = (this.optTok || 0) + 1;
+    if (st.any && typeof this.LD.stockList !== 'function') { this.setState({ live: true, rows: [], msg: 'An outdated data file is cached in your browser — press Ctrl+Shift+R (Cmd+Shift+R on Mac) to reload.' }); return; }
+    if (!st.any) { this.setState({ live: false, proxy: false, rows: null, opt: {}, optQueue: {}, msg: '', optMsg: '' }); return; }
+    var tok = (this.listTok = (this.listTok || 0) + 1);
+    this.setState((s) => { var o = {}; Object.keys(s.opt).forEach(function (k) { if (s.opt[k]) o[k] = s.opt[k]; }); return { live: true, proxy: st.proxy, loadingList: true, opt: o, optQueue: {}, msg: 'Loading stock list…', optMsg: '', expanded: null, limit: 100 }; });
+    try {
+      var res = await this.LD.stockList(this.state.universe, this.state.watchlist);
+      if (tok !== this.listTok) return;
+      var notes = [];
+      if (!res.quotesLive) notes.push(st.proxy ? 'Tradier quotes unavailable — showing FMP prices' : 'Prices from FMP (add the proxy URL for live quotes)');
+      if (!res.constituentsLive && INDEX_TAG[this.state.universe]) notes.push('Index list is the built-in set — your FMP plan does not include constituent lists');
+      if (!res.profilesLive) notes.push('Market cap, sector and beta fill in per stock as they load');
+      this.setState({ rows: res.rows, loadingList: false, msg: notes.join(' · ') }, () => this.loadRsi());
+    } catch (e) {
+      if (tok === this.listTok) this.setState({ loadingList: false, rows: [], msg: 'Could not load stocks: ' + e.message });
+    }
+  };
+
+  baseRows() {
+    var s = this.state;
+    if (s.live) return s.rows || [];
+    if (s.universe === 'watchlist') return MOCK_ROWS.filter(function (r) { return s.watchlist.indexOf(r.symbol) !== -1; });
+    if (INDEX_TAG[s.universe]) return MOCK_ROWS.filter(function (r) { return r.indices.indexOf(INDEX_TAG[s.universe]) !== -1; });
+    return MOCK_ROWS;
+  }
+  optFor(sym) { return this.state.live ? this.state.opt[sym] : MOCK_OPT[sym]; }
+  hasOpt(sym) { return this.state.live ? (sym in this.state.opt) : true; }
+
+  rsiActive() { var f = this.state.applied; return n(f.rsiMin) != null || n(f.rsiMax) != null; }
+  filtered(skipRsi) {
+    var s = this.state, f = s.applied, q = s.search.trim().toUpperCase(), self = this;
+    var ex = n(f.earnExclude), SZ = SIZES[f.size];
+    var out = this.baseRows().map(function (r) {
+      var rv = s.live ? (r.symbol in s.rsi ? s.rsi[r.symbol] : undefined) : mockRsi(r.symbol);
+      return Object.assign({}, r, { rsi: rv == null ? null : rv, rsiPending: rv === undefined, annDiv: ok(r.divYield) && ok(r.price) ? r.divYield * r.price / 100 : null, offHigh: ok(r.hi52) && ok(r.price) && r.hi52 > 0 ? Math.max(0, (r.hi52 - r.price) / r.hi52 * 100) : null });
+    }).filter(function (r) {
+      if (q && r.symbol.indexOf(q) !== 0 && String(r.name || '').toUpperCase().indexOf(q) === -1) return false;
+      if (f.sector && r.sector !== f.sector) return false;
+      if (!rng(r.price, f.priceMin, f.priceMax)) return false;
+      if (SZ && !rng(r.marketCapB, SZ[0], SZ[1])) return false;
+      if (!rng(r.avgVolumeM, f.volMin, null)) return false;
+      if (!rng(r.beta, null, f.betaMax)) return false;
+      if (!rng(r.offHigh, f.offHighMin, null)) return false;
+      if (!skipRsi && (n(f.rsiMin) != null || n(f.rsiMax) != null) && !r.rsiPending && !rng(r.rsi, f.rsiMin, f.rsiMax)) return false;
+      if (!rng(r.divYield, f.divMin, null)) return false;
+      if (ex != null && ex > 0 && ok(r.earnDays) && r.earnDays >= 0 && r.earnDays <= ex) return false;
+      return true;
+    });
+    var k = s.sortKey, dir = s.sortDir === 'asc' ? 1 : -1;
+    out.sort(function (a, b) {
+      var av = a[k], bv = b[k];
+      var an = av == null || av === '' || (typeof av === 'number' && !isFinite(av)), bn = bv == null || bv === '' || (typeof bv === 'number' && !isFinite(bv));
+      if (an && bn) return 0; if (an) return 1; if (bn) return -1;
+      if (typeof av === 'string') return av.localeCompare(bv) * dir;
+      return (av - bv) * dir;
+    });
+    return out;
+  }
+
+  loadRsi = async () => {
+    if (!this.LD || !this.state.live || typeof this.LD.rsi !== 'function') return;
+    var s = this.state, cap = this.rsiActive() ? 300 : s.limit;
+    var list = this.filtered(true).filter(function (r) { return r.rsiPending && !s.rsiQ[r.symbol]; }).slice(0, cap);
+    if (!list.length) return;
+    var tok = (this.rsiTok = (this.rsiTok || 0) + 1), queue = list.map(function (r) { return r.symbol; });
+    this.setState((st) => { var q = Object.assign({}, st.rsiQ); queue.forEach(function (x) { q[x] = true; }); return { rsiQ: q }; });
+    var pending = {}, flushT = null;
+    var flush = () => { flushT = null; var p = pending; pending = {}; this.setState((st) => { var m = Object.assign({}, st.rsi, p), q = Object.assign({}, st.rsiQ); Object.keys(p).forEach(function (k) { delete q[k]; }); return { rsi: m, rsiQ: q }; }); };
+    var worker = async () => {
+      while (queue.length && tok === this.rsiTok) {
+        var sym = queue.shift(), v = null;
+        try { v = await this.LD.rsi(sym); } catch (e) { v = null; }
+        if (tok !== this.rsiTok) return;
+        pending[sym] = v;
+        if (!flushT) flushT = setTimeout(flush, 250);
+      }
+    };
+    await Promise.all([worker(), worker(), worker(), worker()]);
+    if (flushT) { clearTimeout(flushT); flush(); }
+    if (tok === this.rsiTok) this.setState({ rsiQ: {} });
+  };
+  onUniverseClick = (e) => { var u = e.currentTarget.dataset.universe; this.setState({ universe: u, expanded: null, limit: 100 }, () => { if (this.state.live) this.reload(); }); };
+  onSearch = (e) => { this.setState({ search: e.target.value, limit: 100 }); };
+  onSearchKey = (e) => {
+    if (e.key !== 'Enter') return;
+    var q = this.state.search.trim().toUpperCase().replace(/^[$]/, '');
+    if (!q) return;
+    var hits = this.filtered();
+    var exact = hits.find(function (r) { return r.symbol === q; });
+    if (exact) this.openDetail(exact.symbol);
+    else if (hits.length === 1) this.openDetail(hits[0].symbol);
+    else if (/^[A-Z][A-Z0-9.\-]{0,9}$/.test(q)) this.openDetail(q);
+  };
+  lookupOpen = () => { var q = this.state.search.trim().toUpperCase().replace(/^[$]/, ''); if (q) this.openDetail(q); };
+  onWlInput = (e) => { this.setState({ wlInput: e.target.value.toUpperCase() }); };
+  onWlKey = (e) => { if (e.key === 'Enter') this.onWatchlistAdd(); };
+  saveWL(w) { try { localStorage.setItem(WL_KEY, JSON.stringify(w)); } catch (e) {} }
+  onWatchlistAdd = () => {
+    var sym = this.state.wlInput.trim().replace(/^\$/, '');
+    if (!sym || this.state.watchlist.indexOf(sym) !== -1) return;
+    var w = this.state.watchlist.concat([sym]); this.saveWL(w);
+    this.setState({ watchlist: w, wlInput: '' }, () => { if (this.state.live) this.reload(); });
+  };
+  onWatchlistRemove = (e) => {
+    var sym = e.currentTarget.dataset.symbol, w = this.state.watchlist.filter(function (x) { return x !== sym; }); this.saveWL(w);
+    this.setState((s) => ({ watchlist: w, rows: s.rows ? s.rows.filter(function (r) { return r.symbol !== sym; }) : s.rows }));
+  };
+  onDraftChange = (e) => { var k = e.target.name, v = e.target.value; this.setState((s) => { var d = Object.assign({}, s.draft); d[k] = v; return { draft: d }; }); };
+  applyFilters = () => { this.setState((s) => ({ applied: Object.assign({}, s.draft), limit: 100, preset: '' }), () => this.loadRsi()); };
+  resetFilters = () => { this.setState({ draft: Object.assign({}, EMPTY), applied: Object.assign({}, EMPTY), search: '', limit: 100, preset: '' }, () => this.loadRsi()); };
+  onPreset = (e) => {
+    var k = e.currentTarget.dataset.key, p = PRESETS.find(function (x) { return x.key === k; });
+    if (!p || this.state.preset === k) { this.resetFilters(); return; }
+    var f = Object.assign({}, EMPTY, p.f);
+    this.setState({ draft: f, applied: Object.assign({}, f), preset: k, limit: 100 }, () => this.loadRsi());
+  };
+  onSortClick = (e) => {
+    var key = e.currentTarget.dataset.key;
+    this.setState((s) => s.sortKey === key ? { sortDir: s.sortDir === 'asc' ? 'desc' : 'asc' } : { sortKey: key, sortDir: key === 'symbol' || key === 'sector' || key === 'earnDays' || key === 'offHigh' ? 'asc' : 'desc' }, () => this.loadRsi());
+  };
+  openDetail = async (sym) => {
+    this.setState({ detail: sym, dHover: null, dErr: '' });
+    try { window.scrollTo({ top: 0 }); } catch (e) {}
+    this.loadHist(sym, this.state.dRange);
+    if (this.state.live && this.LD && this.LD.dividendProfile && !(sym in this.state.dDiv)) this.LD.dividendProfile(sym).then((dp) => this.setState((st) => ({ dDiv: Object.assign({}, st.dDiv, { [sym]: dp }) })), () => this.setState((st) => ({ dDiv: Object.assign({}, st.dDiv, { [sym]: null }) })));
+    if (this.state.live && this.LD && this.LD.news && !(sym in this.state.dNews)) this.LD.news(sym, (((this.state.rows || []).find(function (r) { return r.symbol === sym; }) || {}).name) || "").then((nw) => this.setState((st) => ({ dNews: Object.assign({}, st.dNews, { [sym]: nw }) })), () => this.setState((st) => ({ dNews: Object.assign({}, st.dNews, { [sym]: { items: [], src: '' } }) })));
+    if (this.state.live && this.LD && this.LD.rsi && !(sym in this.state.rsi)) this.LD.rsi(sym).then((v) => this.setState((st) => ({ rsi: Object.assign({}, st.rsi, { [sym]: v }) })), function () {});
+    if (!this.state.live) {
+      var mr = MOCK_ROWS.find(function (r) { return r.symbol === sym; });
+      if (mr && !this.state.dRecs[sym]) this.setState((s) => ({ dRecs: Object.assign({}, s.dRecs, { [sym]: mockRec(mr) }) }));
+      return;
+    }
+    if (this.state.proxy && !(sym in this.state.opt)) {
+      var pr = (this.state.rows || []).find(function (r) { return r.symbol === sym; });
+      this.LD.optionMetrics(sym, pr ? pr.price : null).then((m) => this.setState((s) => ({ opt: Object.assign({}, s.opt, { [sym]: m }) })), () => this.setState((s) => ({ opt: Object.assign({}, s.opt, { [sym]: null }) })));
+    }
+    var rec = this.state.dRecs[sym];
+    if (!rec) {
+      this.setState((s) => ({ dLoad: Object.assign({}, s.dLoad, { [sym]: true }) }));
+      try { rec = await this.LD.valuation(sym, { rf: 4.2 }); this.setState((s) => ({ dRecs: Object.assign({}, s.dRecs, { [sym]: rec }) })); }
+      catch (e) { this.setState({ dErr: 'Live financials unavailable for ' + sym + ' (' + e.message + ').' }); }
+      this.setState((s) => { var l = Object.assign({}, s.dLoad); delete l[sym]; return { dLoad: l }; });
+    }
+    if (rec && !rec.description && this.state.dBios[sym] === undefined) {
+      var b = await this.LD.companyBio(rec.name).catch(function () { return null; });
+      this.setState((s) => ({ dBios: Object.assign({}, s.dBios, { [sym]: b || false }) }));
+    }
+  };
+  loadHist = async (sym, range) => {
+    var k = sym + ':' + range;
+    if (this.state.dHist[k]) return;
+    var pts;
+    if (this.state.live && this.LD) { try { pts = await this.LD.priceHistory(sym, range); } catch (e) { pts = []; } }
+    else { var mr = MOCK_ROWS.find(function (r) { return r.symbol === sym; }); pts = mr ? mockHistory(sym, mr.price, range) : []; }
+    this.setState((s) => ({ dHist: Object.assign({}, s.dHist, { [k]: pts || [] }) }));
+  };
+  onRowClick = (e) => { this.openDetail(e.currentTarget.dataset.symbol); };
+  closeDetail = () => { this.setState({ detail: null, dHover: null }); };
+  onRangeClick = (e) => { var r = e.currentTarget.dataset.range; this.setState({ dRange: r, dHover: null }); if (this.state.detail) this.loadHist(this.state.detail, r); };
+  onChartMove = (e) => {
+    var h = this.state.dHist[this.state.detail + ':' + this.state.dRange];
+    if (!h || h.length < 2) return;
+    var b = e.currentTarget.getBoundingClientRect();
+    var i = Math.round(Math.max(0, Math.min(1, (e.clientX - b.left) / b.width)) * (h.length - 1));
+    if (i !== this.state.dHover) this.setState({ dHover: i });
+  };
+  onChartLeave = () => { if (this.state.dHover != null) this.setState({ dHover: null }); };
+  showMore = () => { this.setState((s) => ({ limit: s.limit + 100 }), () => this.loadRsi()); };
+
+  openSettings = () => { var cur = {}; try { cur = JSON.parse(localStorage.getItem('wheel_live_settings_v1') || '{}'); } catch (e) {} this.setState({ settingsOpen: true, test: null, sDraft: Object.assign({ fmpKey: '', proxyUrl: '', scanLimit: 40 }, cur) }); };
+  closeSettings = () => { this.setState({ settingsOpen: false }); };
+  onSettingsField = (e) => { var k = e.target.name, v = e.target.value; this.setState((s) => { var d = Object.assign({}, s.sDraft); d[k] = v; return { sDraft: d }; }); };
+  saveSettings = () => { if (this.LD) this.LD.saveSettings(this.state.sDraft); this.setState({ settingsOpen: false }); };
+  testConn = async () => { if (!this.LD) return; this.LD.saveSettings(this.state.sDraft); this.setState({ testing: true, test: null }); var r = await this.LD.testConnection(); this.setState({ testing: false, test: r }); };
+  clearCache = () => { if (!this.LD) return; this.LD.clearCache(); this.setState({ opt: {}, rsi: {}, rsiQ: {} }, () => this.reload()); };
+
+  renderVals() {
+    var s = this.state, self = this;
+    var list = this.filtered();
+    var base = this.baseRows();
+    var queued = s.optQueue;
+    var sectors = Array.from(new Set(base.map(function (r) { return r.sector; }).filter(Boolean))).sort();
+
+    var rows = list.slice(0, s.limit).map(function (r) {
+      var hasR = ok(r.lo52) && ok(r.hi52) && r.hi52 > r.lo52 && ok(r.price);
+      return {
+        symbol: r.symbol, name: r.name, sector: r.sector || 'n/a',
+        bg: 'transparent',
+        price: money(r.price), chg: ok(r.chg) ? (r.chg >= 0 ? '+' : '') + r.chg.toFixed(2) + '%' : 'n/a',
+        chgColor: ok(r.chg) && r.chg > 0 ? 'var(--color-accent-700)' : 'var(--color-text)',
+        cap: cap(r.marketCapB), size: sizeOf(r.marketCapB),
+        div: ok(r.divYield) ? (r.divYield > 0 ? r.divYield.toFixed(2) + '%' : '—') : 'n/a',
+        annDiv: ok(r.annDiv) && r.annDiv > 0 ? money(r.annDiv) : ok(r.divYield) ? '—' : 'n/a',
+        beta: ok(r.beta) ? r.beta.toFixed(2) : 'n/a',
+        hasRange: hasR, noRange: !hasR,
+        pos: hasR ? (Math.max(0, Math.min(1, (r.price - r.lo52) / (r.hi52 - r.lo52))) * 100).toFixed(1) + '%' : '0%',
+        lo: hasR ? money(r.lo52) : '', hi: hasR ? money(r.hi52) : '',
+        off: ok(r.offHigh) ? (r.offHigh < 1 ? 'At high' : '−' + r.offHigh.toFixed(0) + '% from high') : '',
+        rsi: ok(r.rsi) ? r.rsi.toFixed(1) : r.rsiPending && s.live ? (s.rsiQ[r.symbol] ? '…' : '—') : 'n/a',
+        rsiLbl: !ok(r.rsi) ? '' : r.rsi >= 70 ? 'Overbought' : r.rsi <= 30 ? 'Oversold' : 'Neutral',
+        rsiColor: ok(r.rsi) && r.rsi <= 30 ? 'var(--color-accent-700)' : 'var(--color-text)',
+        avgVol: vol(r.avgVolumeM),
+        earn: ok(r.earnDays) ? r.earnDays + 'd' : 'n/a',
+        earnColor: ok(r.earnDays) && r.earnDays >= 0 && r.earnDays <= 7 ? 'var(--color-accent-700)' : 'var(--color-text)'
+      };
+    });
+
+    var columns = COLS.map(function (c) { return { key: c.key, label: c.label, align: c.align, tip: c.tip || '', arrow: s.sortKey === c.key ? (s.sortDir === 'asc' ? '▲' : '▼') : '' }; });
+    var segc = function (k) { return 'seg-opt' + (s.universe === k ? ' active' : ''); };
+    var lq = s.search.trim().toUpperCase().replace(/^[$]/, ''), lookupSym = /^[A-Z][A-Z0-9.\-]{0,9}$/.test(lq) ? lq : '';
+    var statusMsg = [s.msg, s.optMsg].filter(Boolean).join(' · ');
+    var test = s.test;
+    var dv = { facts: [], stats: [] }, chart = { has: false, none: true, note: '' }, fin = { has: false, none: true, bars: [], note: '' }, vv = { has: false, none: true, note: '' }, dopt = { has: false, none: true, chain: [], title: 'OPTIONS SNAPSHOT', note: '' };
+    var rsc = function (k) { return 'seg-opt' + (s.dRange === k ? ' active' : ''); };
+    var rangeSeg = { m1: rsc('1M'), m6: rsc('6M'), y1: rsc('1Y'), y5: rsc('5Y') };
+    if (s.detail) {
+      var dsym = s.detail;
+      var drow = base.find(function (r) { return r.symbol === dsym; }) || MOCK_ROWS.find(function (r) { return r.symbol === dsym; }) || { symbol: dsym };
+      if (s.live && !base.find(function (r) { return r.symbol === dsym; })) drow = { symbol: dsym };
+      var rec = s.dRecs[dsym] || null;
+      var dop = this.optFor(dsym);
+      var dprice = rec && ok(rec.price) ? rec.price : drow.price;
+      var dchg = ok(drow.chg) ? drow.chg : (rec ? rec.chg : null);
+      var hist = s.dHist[dsym + ':' + s.dRange];
+      if (hist && hist.length > 1) {
+        var cs = hist.map(function (p) { return p.c; });
+        var lo = Math.min.apply(null, cs), hi = Math.max.apply(null, cs), padv = (hi - lo) * 0.08 || hi * 0.02 || 1;
+        var y0 = lo - padv, y1 = hi + padv, N = hist.length;
+        var X = function (i) { return i / (N - 1) * 1000; }, Y = function (v) { return (1 - (v - y0) / (y1 - y0)) * 300; };
+        var line = 'M' + hist.map(function (p, i) { return X(i).toFixed(1) + ',' + Y(p.c).toFixed(1); }).join(' L');
+        var hix = s.dHover != null && s.dHover < N ? s.dHover : N - 1, hp = hist[hix], first = hist[0].c, rc = (hp.c / first - 1) * 100;
+        chart = { has: true, none: false, line: line, area: line + ' L1000,300 L0,300 Z', hoverOn: s.dHover != null,
+          hx: (hix / (N - 1) * 100).toFixed(2) + '%', hy: (Y(hp.c) / 3).toFixed(2) + '%',
+          date: fmtD(hp.d) + (s.dHover == null ? ' · latest close' : ''), price: money(hp.c),
+          chg: (rc >= 0 ? '+' : '') + rc.toFixed(2) + '% since ' + fmtD(hist[0].d), chgColor: rc >= 0 ? 'var(--color-accent-700)' : 'var(--color-text)',
+          max: money(y1), min: money(y0), start: fmtD(hist[0].d), end: fmtD(hist[N - 1].d) };
+      } else {
+        chart = { has: false, none: true, note: hist ? 'No price history returned for ' + dsym + '.' : 'Loading price history…', date: 'Price', price: money(dprice), chg: '', chgColor: 'var(--color-text)' };
+      }
+      var fh = rec && rec.hist ? rec.hist.filter(function (h) { return ok(h.revenue); }).slice(-5) : [];
+      if (fh.length) {
+        var pmax = 0, nmax = 0;
+        fh.forEach(function (h) { pmax = Math.max(pmax, h.revenue, ok(h.netIncome) ? h.netIncome : 0); if (ok(h.netIncome) && h.netIncome < 0) nmax = Math.max(nmax, -h.netIncome); });
+        var span = (pmax + nmax) || 1, zero = pmax / span * 100;
+        var pc = function (v) { return (Math.abs(v) / span * 100).toFixed(2) + '%'; };
+        var bars = fh.map(function (h) {
+          var ni = ok(h.netIncome) ? h.netIncome : null, neg = ni != null && ni < 0;
+          var rTop = zero - h.revenue / span * 100, nTop = ni == null || neg ? zero : zero - ni / span * 100;
+          return { year: 'FY' + h.year, rTop: rTop.toFixed(2) + '%', rH: pc(h.revenue), rLabel: bn(h.revenue), rLabelTop: 'calc(' + rTop.toFixed(2) + '% - 18px)',
+            nTop: nTop.toFixed(2) + '%', nH: ni == null ? '0%' : pc(ni), nLabel: ni == null ? 'n/a' : bn(ni),
+            nLabelTop: neg ? 'calc(' + (zero + Math.abs(ni) / span * 100).toFixed(2) + '% + 4px)' : 'calc(' + nTop.toFixed(2) + '% - 18px)',
+            nFill: neg ? 'var(--color-neutral-500)' : 'var(--color-accent-700)', margin: ni != null && h.revenue ? (ni / h.revenue * 100).toFixed(1) + '% margin' : '' };
+        });
+        var f0 = fh[0], f1 = fh[fh.length - 1], fy = f1.year - f0.year, lastM = ok(f1.netIncome) && f1.revenue ? f1.netIncome / f1.revenue * 100 : null;
+        fin = { has: true, none: false, bars: bars, zero: zero.toFixed(2) + '%',
+          sub: 'Fiscal ' + f0.year + '–' + f1.year + ' · ' + (rec.mock ? 'sample data' : (rec.sources || []).filter(function (x) { return x !== 'Tradier'; }).join(' + ') || 'filings'),
+          cagr: fy > 0 && f0.revenue > 0 && f1.revenue > 0 ? ((Math.pow(f1.revenue / f0.revenue, 1 / fy) - 1) * 100).toFixed(1) + '%' : 'n/a',
+          margin: ok(lastM) ? lastM.toFixed(1) + '%' : 'n/a' };
+      } else {
+        fin = { has: false, none: true, bars: [], note: rec ? 'No annual revenue data found in filings.' : (s.dErr ? 'Financials unavailable.' : 'Loading financials…'), sub: 'Last 5 fiscal years', cagr: 'n/a', margin: 'n/a' };
+      }
+      var val = rec && this.LD && this.LD.intrinsic ? this.LD.intrinsic(rec) : null;
+      if (val) {
+        var evv = val.value, mos = ok(evv) && evv > 0 && ok(dprice) ? (evv - dprice) / evv * 100 : null, up = ok(evv) && evv > 0 && ok(dprice) && dprice > 0 ? (evv / dprice - 1) * 100 : null;
+        vv = { has: true, none: false, name: val.name, rationale: !rec.mock && rec.rationale ? rec.rationale : val.rationale,
+          value: ok(evv) && evv > 0 ? money(evv) : 'n/a', price: money(dprice),
+          upside: ok(up) ? (up >= 0 ? '+' : '') + up.toFixed(1) + '%' : 'n/a', mos: ok(mos) ? mos.toFixed(1) + '%' : 'n/a',
+          upColor: ok(up) && up > 0 ? 'var(--color-accent-700)' : 'var(--color-text)',
+          verdict: !ok(mos) ? 'INSUFFICIENT DATA' : mos >= 25 ? 'UNDERVALUED' : mos >= -10 ? 'NEAR FAIR VALUE' : 'OVERVALUED',
+          verdictClass: ok(mos) && mos >= 25 ? 'tag tag-accent' : ok(mos) && mos >= -10 ? 'tag tag-outline' : 'tag tag-neutral',
+          inputs: val.inputs.map(function (x) { return { label: x.label, value: fmtIn(x.value, x.unit) }; }),
+          note: (rec.mock ? 'Sample assumptions.' : 'Inputs derived from annual filings; discount rate via CAPM.') + ' Adjust every assumption in the full model.' };
+      } else {
+        vv = { has: false, none: true, note: s.dErr ? 'Valuation unavailable — no filings data.' : 'Loading valuation…', verdict: '', verdictClass: 'tag tag-outline' };
+      }
+      var dchain = dop && dop.chain ? dop.chain.map(function (c) {
+        var f = function (x, k) { return x ? (k === 'iv' ? pct(x.iv) : k === 'oi' ? count(x.oi) : money(x[k])) : '—'; };
+        return { strike: money(c.strike), cb: f(c.call, 'bid'), ca: f(c.call, 'ask'), civ: f(c.call, 'iv'), coi: f(c.call, 'oi'), pb: f(c.put, 'bid'), pa: f(c.put, 'ask'), piv: f(c.put, 'iv'), poi: f(c.put, 'oi'), bg: c.atm ? 'var(--color-accent-100)' : 'transparent', weight: c.atm ? '700' : '400' };
+      }) : [];
+      dopt = { has: dchain.length > 0, none: dchain.length === 0, chain: dchain,
+        title: dop ? 'OPTIONS SNAPSHOT · ' + fmtD(dop.expiry) + ' (' + dop.dte + ' DTE) · ATM ' + money(dop.atmStrike) + ' · IV ' + pct(dop.iv30) : 'OPTIONS SNAPSHOT',
+        note: !s.proxy && s.live ? 'Add the proxy URL in Data Settings to load option chains.' : (dsym in s.opt) ? 'No listed options found for this stock.' : 'Loading options data…' };
+      var bioObj = rec && rec.description ? { text: rec.description, source: rec.mock ? '' : 'Financial Modeling Prep' } : (s.dBios[dsym] || null);
+      var bio = bioObj ? trimBio(bioObj.text) : (s.dBios[dsym] === false || s.dErr ? 'No company overview available.' : 'Loading company overview…');
+      var emp = rec && rec.employees ? rec.employees.toLocaleString() : '';
+      var facts = [['Sector', rec ? [rec.sector, rec.industry].filter(function (x) { return x && x !== 'n/a' && rec.sector.indexOf(x) === -1 || x === rec.sector; }).join(' · ') : drow.sector], ['Exchange', rec && rec.exchange], ['Headquarters', rec && rec.hq], ['Employees', emp], ['CEO', rec && rec.ceo], ['Web', rec && rec.website ? rec.website.replace(/^https?:\/\//, '').replace(/\/$/, '') : '']]
+        .filter(function (x) { return x[1] && x[1] !== 'n/a' && x[0] !== 'Web'; }).map(function (x) { return { label: x[0], value: x[1] }; });
+      var capB = ok(drow.marketCapB) ? drow.marketCapB : rec ? rec.marketCapB : null;
+      var beta = ok(drow.beta) ? drow.beta : rec ? rec.beta : null;
+      var dy = ok(drow.divYield) ? drow.divYield : rec && rec.dps > 0 && ok(dprice) && dprice > 0 ? rec.dps / dprice * 100 : null;
+      var l52 = ok(drow.lo52) ? drow.lo52 : rec ? rec.lo52 : null, h52 = ok(drow.hi52) ? drow.hi52 : rec ? rec.hi52 : null;
+      var stats = [
+        { label: 'Market Cap', value: cap(capB) },
+        { label: 'P / E', value: rec && rec.eps > 0 && ok(dprice) ? (dprice / rec.eps).toFixed(1) + 'x' : 'n/a' },
+        { label: 'Dividend Yield', value: ok(dy) ? (dy > 0 ? dy.toFixed(2) + '%' : 'None') : 'n/a' },
+        { label: 'Beta', value: ok(beta) ? beta.toFixed(2) : 'n/a' },
+        { label: '52-Week Range', value: ok(l52) && ok(h52) ? money(l52) + ' – ' + money(h52) : 'n/a' },
+        { label: 'Next Earnings', value: ok(drow.earnDays) ? drow.earnDays + ' days' : 'n/a' },
+        { label: 'RSI (14)', value: (function () { var v = s.live ? s.rsi[dsym] : mockRsi(dsym); return ok(v) ? v.toFixed(1) + (v >= 70 ? ' · Overbought' : v <= 30 ? ' · Oversold' : ' · Neutral') : 'n/a'; })() }
+      ];
+      var nm = (rec && rec.name) || drow.name || dsym, site = rec && rec.website ? String(rec.website) : '', host = '';
+      if (site && site.indexOf('http') !== 0) site = 'https://' + site;
+      try { host = site ? new URL(site).hostname.replace(/^www[.]/, '') : ''; } catch (e) { host = ''; }
+      var irUrl = 'https://duckduckgo.com/?q=%5C' + encodeURIComponent(nm + ' investor relations' + (host ? ' site:' + host : ''));
+      var idx = (drow.indices && drow.indices.length ? drow.indices : (rec && rec.indices) || []);
+      dv = { symbol: dsym, name: (rec && rec.name) || drow.name || dsym,
+        kicker: [(rec && rec.sector) || drow.sector, idx.join ? idx.join(' · ') : idx].filter(function (x) { return x && x !== 'n/a'; }).join(' · ') || 'Company overview',
+        price: money(dprice), chg: ok(dchg) ? (dchg >= 0 ? '+' : '') + dchg.toFixed(2) + '% today' : '', chgColor: ok(dchg) && dchg > 0 ? 'var(--color-accent-700)' : 'var(--color-text)',
+        bio: bio, hasBioSrc: !!(bioObj && bioObj.source), bioSrc: bioObj ? bioObj.source : '', facts: facts, stats: stats,
+        irUrl: irUrl, siteUrl: site, hasSite: !!site, secUrl: 'https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=' + encodeURIComponent(dsym) + '&type=10-K',
+        hasErr: !!s.dErr, err: s.dErr,
+        status: s.dLoad[dsym] ? 'Loading live data…' : rec ? (rec.mock ? 'Sample data' : 'Live · ' + (rec.sources || []).join(' + ')) : '' };
+    }
+
+    var ddiv = { dates: [], bars: [], stats: [], pays: false, noPay: false, tag: '', tagCls: 'tag tag-outline' };
+    if (s.detail) {
+      var xs = s.detail, xrow = base.find(function (r) { return r.symbol === xs; }) || MOCK_ROWS.find(function (r) { return r.symbol === xs; }) || {};
+      if (s.live && !base.find(function (r) { return r.symbol === xs; })) xrow = {};
+      var dp = s.live ? s.dDiv[xs] : mockDiv(xrow);
+      var loadingDiv = s.live && !(xs in s.dDiv);
+      var dprc = dp && ok(dp.price) ? dp.price : xrow.price;
+      var hh = dp && dp.history ? dp.history.filter(function (x) { return ok(x.dps) && x.dps > 0; }).slice(-10) : [];
+      var nx = dp && dp.next, ed = xrow.earnDate || null, edd = ok(xrow.earnDays) ? xrow.earnDays : daysTo(ed);
+      var away = function (n) { return n == null ? '' : n === 0 ? 'Today' : n > 0 ? 'In ' + n + (n === 1 ? ' day' : ' days') : Math.abs(n) + ' days ago'; };
+      ddiv.dates = [
+        { label: 'Ex-Dividend Date', value: nx ? fmtD(nx.exDate) : loadingDiv ? '…' : '—', note: nx ? away(daysTo(nx.exDate)) + ' · ' + (nx.declared ? 'Declared' : 'Estimated') + (ok(nx.amount) ? ' · ' + money(nx.amount) + '/sh' : '') : 'Buy before this date to receive the next dividend', noteColor: nx && nx.declared ? '#C23B00' : 'var(--color-neutral-700)' },
+        { label: 'Pay Date', value: nx && nx.payDate ? fmtD(nx.payDate) : loadingDiv ? '…' : '—', note: nx && nx.payDate ? away(daysTo(nx.payDate)) : '', noteColor: 'var(--color-neutral-700)' },
+        { label: 'Next Earnings', value: ed ? fmtD(ed) : ok(edd) ? away(edd) : 'n/a', note: ok(edd) ? away(edd) : 'Not scheduled in calendar', noteColor: ok(edd) && edd >= 0 && edd <= 14 ? '#C23B00' : 'var(--color-neutral-700)' }
+      ];
+      var ad = dp && ok(dp.annualDiv) ? dp.annualDiv : null;
+      if (hh.length) {
+        var mx = Math.max.apply(null, hh.map(function (x) { return x.dps; })) || 1, streak = 0, cuts = [];
+        for (var i2 = hh.length - 1; i2 > 0 && hh[i2].dps > hh[i2 - 1].dps * 1.001; i2--) streak++;
+        hh.forEach(function (x, i) { if (i > 0 && x.dps < hh[i - 1].dps * 0.97) cuts.push(x.year); });
+        var cg = function (n) { var L2 = hh.length - 1, f = L2 - n; return f >= 0 && hh[f].dps > 0 ? (Math.pow(hh[L2].dps / hh[f].dps, 1 / n) - 1) * 100 : null; };
+        var g5 = cg(5), g10 = hh.length >= 10 ? cg(hh.length - 1) : null;
+        ddiv.bars = hh.map(function (x, i) { var cut = cuts.indexOf(x.year) !== -1; return { y: "'" + String(x.year).slice(2), v: x.dps.toFixed(2), h: (x.dps / mx * 100).toFixed(1) + '%', bg: cut ? 'var(--color-neutral-500)' : i === hh.length - 1 ? '#FF4F00' : '#111', lc: cut ? '#C23B00' : 'var(--color-text)' }; });
+        ddiv.range = 'FY' + hh[0].year + '–' + hh[hh.length - 1].year;
+        ddiv.hasCut = cuts.length > 0; ddiv.cutNote = 'Dividend cut in ' + cuts.join(', ') + ' (grey bars).';
+        ddiv.stats = [
+          { label: 'Annual Dividend', value: ok(ad) ? money(ad) : 'n/a' },
+          { label: 'Yield', value: ok(ad) && ok(dprc) && dprc > 0 ? (ad / dprc * 100).toFixed(2) + '%' : 'n/a' },
+          { label: '5-Yr Growth', value: ok(g5) ? (g5 >= 0 ? '+' : '') + g5.toFixed(1) + '%/yr' : 'n/a' },
+          { label: (hh.length - 1) + '-Yr Growth', value: ok(g10) ? (g10 >= 0 ? '+' : '') + g10.toFixed(1) + '%/yr' : 'n/a' },
+          { label: 'Increase Streak', value: streak + (streak === 1 ? ' yr' : ' yrs') + (streak === hh.length - 1 ? '+' : '') },
+          { label: 'Paid', value: ({ 12: 'Monthly', 4: 'Quarterly', 2: 'Semi-annual', 1: 'Annual' })[dp.freq] || '—' }
+        ];
+        ddiv.pays = true;
+        ddiv.tag = streak >= 5 ? streak + (streak === hh.length - 1 ? '+' : '') + '-YR GROWTH STREAK' : cuts.length ? 'CUT IN LAST 10 YRS' : 'DIVIDEND PAYER';
+        ddiv.tagCls = streak >= 5 ? 'tag tag-accent' : cuts.length ? 'tag tag-neutral' : 'tag tag-outline';
+      } else {
+        ddiv.noPay = true;
+        ddiv.note = loadingDiv ? 'Loading dividend history…' : ok(ad) && ad > 0 ? 'Pays ' + money(ad) + '/share a year — no annual history available from connected sources.' : xs + " doesn't currently pay a dividend, or no dividend data is available on your data plan.";
+        ddiv.tag = loadingDiv ? 'LOADING' : ok(ad) && ad > 0 ? 'DIVIDEND PAYER' : 'NO DIVIDEND';
+      }
+    }
+    var nwd = s.detail ? s.dNews[s.detail] : null;
+    var fx = function (l) { return (l || []).slice(0, 10).map(function (x) { return { title: x.title, url: x.url, site: x.site, date: x.date ? fmtD(x.date) : '' }; }); };
+    var nh = nwd && nwd.headlines ? nwd.headlines : [], nf = nwd && nwd.filings ? nwd.filings : (nwd && nwd.items ? nwd.items : []);
+    var dnews = { title: nh.length ? 'HEADLINES & FILINGS' : 'RECENT FILINGS', head: fx(nh), fil: fx(nf), hasHead: nh.length > 0, hasFil: nf.length > 0, none: !nh.length && !nf.length,
+      note: !s.live ? 'Connect live data in Data Settings to see headlines and SEC filings.' : s.detail && !(s.detail in s.dNews) ? 'Loading headlines and filings…' : 'No headlines or filings found from connected sources.',
+      more: 'https://news.google.com/search?q=' + encodeURIComponent((s.detail || '') + ' stock'),
+      edgar: 'https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=' + encodeURIComponent(s.detail || '') + '&owner=include&count=40' };
+    return {
+      dnews: dnews, ddiv: ddiv,
+      detailMode: !!s.detail, listMode: !s.detail, dv: dv, chart: chart, fin: fin, vv: vv, dopt: dopt, rangeSeg: rangeSeg,
+      closeDetail: this.closeDetail, onRangeClick: this.onRangeClick, onChartMove: this.onChartMove, onChartLeave: this.onChartLeave,
+      live: s.live, dataTag: s.live ? 'LIVE DATA' : 'SAMPLE DATA', dataTagClass: s.live ? 'tag tag-accent' : 'tag tag-outline',
+      reload: this.reload, openSettings: this.openSettings,
+      seg: { sp500: segc('sp500'), ndx: segc('ndx'), dji: segc('dji'), all: segc('all'), watchlist: segc('watchlist') },
+      onUniverseClick: this.onUniverseClick, search: s.search, onSearch: this.onSearch,
+      showWatchlist: s.universe === 'watchlist', watchlistChips: s.watchlist.map(function (x) { return { symbol: x }; }),
+      wlInput: s.wlInput, onWlInput: this.onWlInput, onWlKey: this.onWlKey, onWatchlistAdd: this.onWatchlistAdd, onWatchlistRemove: this.onWatchlistRemove,
+      draft: s.draft, sectors: sectors, onDraftChange: this.onDraftChange, applyFilters: this.applyFilters, resetFilters: this.resetFilters,
+      countLabel: s.loadingList ? 'Loading…' : list.length.toLocaleString() + ' stocks',
+      showLookup: !s.loadingList && lookupSym !== '' && !base.some(function (r) { return r.symbol === lookupSym; }), lookupSym: lookupSym, lookupOpen: this.lookupOpen, onSearchKey: this.onSearchKey,
+      universeLabel: { sp500: 'S&P 500', ndx: 'Nasdaq-100', dji: 'Dow 30', all: 'All US > $1B', watchlist: 'watchlist' }[s.universe],
+      subLabel: s.loadingList ? '' : 'of ' + base.length.toLocaleString() + ' in universe',
+      presets: PRESETS.map(function (p) { return { key: p.key, label: p.label, cls: 'tag ' + (s.preset === p.key ? 'tag-accent' : 'tag-outline') }; }), onPreset: this.onPreset,
+      hasStatus: !!statusMsg, statusMsg: statusMsg,
+      columns: columns, onSortClick: this.onSortClick, rows: rows, onRowClick: this.onRowClick,
+      noResults: !s.loadingList && list.length === 0,
+      emptyMsg: base.length === 0 ? (s.universe === 'watchlist' ? 'Your watchlist is empty — add a symbol above.' : 'No stocks loaded for this universe.') : 'No stocks match the current filters. Clear a filter or click Reset Filters.',
+      hasMoreRows: list.length > s.limit, showMore: this.showMore, moreLabel: 'Show more (' + (list.length - s.limit).toLocaleString() + ' remaining)',
+      settingsOpen: s.settingsOpen, sDraft: s.sDraft, onSettingsField: this.onSettingsField,
+      closeSettings: this.closeSettings, saveSettings: this.saveSettings, testConn: this.testConn, clearCache: this.clearCache,
+      testLabel: s.testing ? 'Testing…' : 'Test Connection', hasTest: !!test,
+      testRows: test ? [{ label: 'FMP', value: test.fmp }, { label: 'Proxy', value: test.proxy }, { label: 'Tradier', value: test.tradier }, { label: 'SEC EDGAR', value: test.sec }] : []
+    };
+  }
+}
+
+</script>
+</body>
+</html>

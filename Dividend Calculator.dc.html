@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/industry-e2648902-d6e6-4bc5-b1ff-d0fd94fd6c60/styles.css">
+  <link rel="stylesheet" href="cy-theme.css">
+  <script src="_ds/industry-e2648902-d6e6-4bc5-b1ff-d0fd94fd6c60/_ds_bundle.js"></script>
+  <script src="liveData.js?v=10"></script>
+  <style>
+    body { margin: 0; }
+    a { color: var(--color-accent-700); }
+    a:hover { color: var(--color-accent-900); }
+  </style>
+</helmet>
+
+<div class="cy-shell">
+  <aside class="cy-side">
+    <a href="Home.dc.html" class="cy-brand">Compound<br>Yield<span>.</span></a>
+    <nav class="cy-index">
+      <a href="Stock%20Screener.dc.html" class="cy-link"><span>01</span>Stock Screener</a>
+      <a href="Stock%20Valuation.dc.html" class="cy-link"><span>02</span>Value</a>
+      <a href="Dividend%20Calculator.dc.html" class="cy-link is-active"><span>03</span>Dividend Calculator</a>
+      <a href="Compound%20Calculator.dc.html" class="cy-link"><span>04</span>Compound Calculator</a>
+      <a href="Portfolio.dc.html" class="cy-link"><span>05</span>Portfolio</a>
+      <a href="Options%20Guide.dc.html" class="cy-link"><span>06</span>Options Guide</a>
+    </nav>
+    <div class="cy-foot"><i></i>Research tools for long-term investors. Not investment advice.</div>
+  </aside>
+  <div class="cy-main">
+
+  <header class="cy-top">
+    <div class="cy-pagetitle"><span class="cy-num">03</span><span>Dividend Calculator</span></div>
+    <span class="{{ dataTagClass }}" style="font-size:11px;letter-spacing:0.08em">{{ dataTag }}</span>
+  </header>
+
+  <div style="display:flex;flex:1;flex-wrap:wrap;align-items:flex-start">
+    <aside class="card blueprint" style="flex:0 0 300px;width:300px;min-width:260px;margin:var(--space-4);padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-4);position:relative;box-sizing:border-box">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div class="card-kicker" style="font-size:11px;letter-spacing:0.08em">INVESTMENT</div>
+
+      <div class="field">
+        <label>Dividend Stock</label>
+        <div style="display:flex;gap:var(--space-2)">
+          <input class="input" type="text" placeholder="Ticker, e.g. KO" value="{{ query }}" onChange="{{ onQuery }}" onKeyDown="{{ onQueryKey }}" style="flex:1;min-width:0;text-transform:uppercase">
+          <button class="btn btn-secondary" onClick="{{ onLoad }}">Load</button>
+        </div>
+      </div>
+
+      <div class="field"><label>Initial Investment ($)</label><input class="input" type="number" step="500" min="0" name="initial" value="{{ initial }}" onChange="{{ onField }}"></div>
+      <div class="field"><label>Monthly Contribution ($)</label><input class="input" type="number" step="50" min="0" name="monthly" value="{{ monthly }}" onChange="{{ onField }}"></div>
+      <div class="field">
+        <label>Time Horizon — {{ yearsLabel }}</label>
+        <input type="range" min="1" max="40" step="1" name="years" value="{{ years }}" onChange="{{ onField }}" style="width:100%;accent-color:var(--color-accent)">
+      </div>
+      <div class="field">
+        <label>Dividends</label>
+        <div class="seg">
+          <button class="{{ dripOn }}" data-drip="1" onClick="{{ onDrip }}">Reinvest (DRIP)</button>
+          <button class="{{ dripOff }}" data-drip="0" onClick="{{ onDrip }}">Take as cash</button>
+        </div>
+      </div>
+      <div class="field"><label>Tax on Dividends (%)</label><input class="input" type="number" step="1" min="0" max="60" name="tax" value="{{ tax }}" onChange="{{ onField }}"></div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--color-neutral-300);padding-top:var(--space-3)">
+        <div class="card-kicker" style="font-size:11px;letter-spacing:0.08em">ASSUMPTIONS</div>
+        <button class="btn btn-ghost" onClick="{{ resetOv }}" style="font-size:11px;padding:2px 8px">Reset to live</button>
+      </div>
+      <sc-for list="{{ assumptions }}" as="a" hint-placeholder-count="4">
+        <div class="field">
+          <label>{{ a.label }}</label>
+          <input class="input" type="number" step="{{ a.step }}" name="{{ a.key }}" value="{{ a.value }}" placeholder="n/a" onChange="{{ onOv }}">
+          <div style="font-size:10px;color:var(--color-neutral-600);margin-top:2px">{{ a.note }}</div>
+        </div>
+      </sc-for>
+      <div class="field">
+        <label>Payment Frequency</label>
+        <select class="input" name="freq" value="{{ freq }}" onChange="{{ onOv }}">
+          <option value="12">Monthly</option>
+          <option value="4">Quarterly</option>
+          <option value="2">Semi-annual</option>
+          <option value="1">Annual</option>
+        </select>
+      </div>
+    </aside>
+
+    <main style="flex:1;min-width:0;padding:var(--space-4) var(--space-4) var(--space-6);display:flex;flex-direction:column;gap:var(--space-4);box-sizing:border-box">
+      <sc-if value="{{ hasMsg }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:var(--space-2) var(--space-3);border:1px solid var(--color-accent-500);background:var(--color-accent-100);font-size:12px;color:var(--color-accent-900)">{{ msg }}</div>
+      </sc-if>
+
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:var(--space-4);flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.09em;color:var(--color-neutral-700)">Dividend Income Projection</div>
+          <div style="font-family:var(--font-heading);font-size:34px;font-weight:800;line-height:1;letter-spacing:-0.025em">{{ symbol }} <span style="font-weight:400;font-size:24px;color:var(--color-neutral-700)">{{ name }}</span></div>
+        </div>
+        <div style="display:flex;gap:var(--space-6);flex-wrap:wrap">
+          <sc-for list="{{ facts }}" as="f" hint-placeholder-count="5">
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-neutral-700)">{{ f.label }}</span>
+              <span style="font-size:15px;font-weight:600">{{ f.value }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div class="card blueprint" style="position:relative;padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-4)">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap">
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <span style="font-family:var(--font-heading);font-size:22px;font-weight:800;letter-spacing:-0.025em">{{ ro.title }}</span>
+            <span style="font-size:12px;color:var(--color-neutral-700)">{{ ro.sub }}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            <span class="tag tag-accent" style="letter-spacing:0.08em">{{ ro.phase }}</span>
+            <span style="font-size:11px;color:var(--color-neutral-700);text-align:right;max-width:340px">{{ ro.desc }}</span>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));border-top:1px solid var(--color-neutral-300);border-left:1px solid var(--color-neutral-300)">
+          <sc-for list="{{ ro.cells }}" as="c" hint-placeholder-count="6">
+            <div style="padding:var(--space-3);border-right:1px solid var(--color-neutral-300);border-bottom:1px solid var(--color-neutral-300);display:flex;flex-direction:column;gap:4px">
+              <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-neutral-700)">{{ c.label }}</span>
+              <span style="font-family:var(--font-heading);font-weight:800;font-size:{{ c.size }};color:{{ c.color }};letter-spacing:-0.025em">{{ c.value }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ hasChart }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="position:relative;height:28px;margin:0 64px">
+              <sc-for list="{{ phases }}" as="ph" hint-placeholder-count="3">
+                <div style="position:absolute;top:0;bottom:0;border:1px solid var(--color-neutral-400);display:flex;align-items:center;justify-content:center;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;overflow:hidden;white-space:nowrap;box-sizing:border-box;transition:background 0.2s;left:{{ ph.left }};width:{{ ph.width }};background:{{ ph.bg }}">{{ ph.label }}</div>
+              </sc-for>
+            </div>
+            <div style="display:flex">
+              <div style="width:64px;display:flex;flex-direction:column;justify-content:space-between;font-size:11px;color:var(--color-neutral-600);text-align:right;padding-right:8px;box-sizing:border-box"><span>{{ axis.incMax }}</span><span>{{ axis.incMid }}</span><span>$0</span></div>
+              <div onMouseLeave="{{ onChartLeave }}" style="position:relative;flex:1;height:300px;border-left:1px solid var(--color-neutral-400);border-bottom:1px solid var(--color-neutral-400)">
+                <div style="position:absolute;left:0;right:0;top:50%;border-top:1px dashed var(--color-neutral-300)"></div>
+                <sc-for list="{{ bounds }}" as="bd" hint-placeholder-count="2">
+                  <div style="position:absolute;top:0;bottom:0;width:0;border-left:1px dashed var(--color-neutral-500);left:{{ bd.left }}"></div>
+                </sc-for>
+                <div style="position:absolute;inset:0;display:flex;align-items:flex-end;gap:2px;padding:0 2px">
+                  <sc-for list="{{ bars }}" as="b" hint-placeholder-count="20">
+                    <div onMouseEnter="{{ onBarEnter }}" data-i="{{ b.i }}" style="flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;cursor:crosshair;transition:opacity 0.15s;opacity:{{ b.op }}">
+                      <div style="display:flex;flex-direction:column;transition:height 0.5s ease;height:{{ b.h }}">
+                        <div style="background:var(--color-accent-800);transition:height 0.5s ease;height:{{ b.pD }}"></div>
+                        <div style="background:var(--color-accent-500);transition:height 0.5s ease;height:{{ b.pC }}"></div>
+                        <div style="background:var(--color-accent-300);transition:height 0.5s ease;height:{{ b.pI }}"></div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+                <svg viewBox="0 0 1000 300" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible">
+                  <path d="{{ valuePath }}" style="fill:none;stroke:var(--color-text);stroke-width:1.5;stroke-dasharray:5 4;vector-effect:non-scaling-stroke"></path>
+                </svg>
+              </div>
+              <div style="width:64px;display:flex;flex-direction:column;justify-content:space-between;font-size:11px;color:var(--color-neutral-600);padding-left:8px;box-sizing:border-box"><span>{{ axis.valMax }}</span><span>{{ axis.valMid }}</span><span>$0</span></div>
+            </div>
+            <div style="display:flex;gap:2px;margin:0 64px;padding:0 2px">
+              <sc-for list="{{ bars }}" as="b" hint-placeholder-count="20">
+                <div style="flex:1;min-width:0;text-align:center;font-size:10px;color:var(--color-neutral-600);white-space:nowrap">{{ b.xl }}</div>
+              </sc-for>
+            </div>
+            <div style="display:flex;gap:var(--space-4);flex-wrap:wrap;font-size:12px;margin-top:var(--space-2);align-items:center">
+              <span style="display:inline-flex;align-items:center;gap:6px"><i style="width:12px;height:12px;background:var(--color-accent-300);display:inline-block"></i>From initial investment</span>
+              <span style="display:inline-flex;align-items:center;gap:6px"><i style="width:12px;height:12px;background:var(--color-accent-500);display:inline-block"></i>From monthly contributions</span>
+              <span style="display:inline-flex;align-items:center;gap:6px"><i style="width:12px;height:12px;background:var(--color-accent-800);display:inline-block"></i>From reinvested dividends</span>
+              <span style="display:inline-flex;align-items:center;gap:6px"><i style="width:18px;height:0;border-top:2px dashed var(--color-text);display:inline-block"></i>Portfolio value (right scale)</span>
+              <span style="color:var(--color-neutral-600);margin-left:auto">Bars = annual dividend cash flow · hover to scan</span>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ noChart }}" hint-placeholder-val="{{ true }}">
+          <div style="height:300px;display:flex;align-items:center;justify-content:center;border:1px solid var(--color-neutral-300);font-size:13px;color:var(--color-neutral-600);text-align:center;padding:var(--space-4)">{{ noChartMsg }}</div>
+        </sc-if>
+      </div>
+
+      <div class="card blueprint" style="position:relative;padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3)">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div class="card-kicker">MILESTONES</div>
+        <sc-if value="{{ hasMilestones }}" hint-placeholder-val="{{ false }}">
+          <table class="table" style="width:100%" onMouseLeave="{{ onChartLeave }}">
+            <thead>
+              <tr><th style="text-align:left">Milestone</th><th style="text-align:right">Reached</th><th style="text-align:right">Monthly Income</th><th style="text-align:right">Annual Income</th><th style="text-align:right">Portfolio Value</th></tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ milestones }}" as="m" hint-placeholder-count="4">
+                <tr onMouseEnter="{{ onBarEnter }}" data-i="{{ m.i }}" style="cursor:default" style-hover="background:var(--color-accent-100)">
+                  <td style="font-weight:600">{{ m.label }}</td>
+                  <td style="text-align:right">{{ m.when }}</td>
+                  <td style="text-align:right">{{ m.monthly }}</td>
+                  <td style="text-align:right">{{ m.annual }}</td>
+                  <td style="text-align:right">{{ m.value }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </sc-if>
+        <sc-if value="{{ noMilestones }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:13px;color:var(--color-neutral-600)">No milestones reached within this horizon — extend the time horizon or add monthly contributions.</div>
+        </sc-if>
+      </div>
+
+      <div style="font-size:11px;color:var(--color-neutral-600);line-height:1.5">Projection assumes a constant annual dividend raise and share-price growth rate, dividends paid on the stock's schedule, and reinvestment at the projected price. Monthly income = annual dividends received ÷ 12. Not investment advice.</div>
+    </main>
+  </div>
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+var SAMPLES = {
+  KO: { name: 'Coca-Cola Co.', price: 71.20, annualDiv: 1.94, freq: 4, divGrowth5: 4.6, priceGrowth5: 5.1 },
+  JNJ: { name: 'Johnson & Johnson', price: 156.40, annualDiv: 4.96, freq: 4, divGrowth5: 5.6, priceGrowth5: 1.2 },
+  PG: { name: 'Procter & Gamble', price: 167.30, annualDiv: 4.03, freq: 4, divGrowth5: 5.8, priceGrowth5: 6.4 },
+  O: { name: 'Realty Income', price: 57.80, annualDiv: 3.16, freq: 12, divGrowth5: 3.7, priceGrowth5: -2.1 },
+  VZ: { name: 'Verizon Communications', price: 43.60, annualDiv: 2.71, freq: 4, divGrowth5: 2.0, priceGrowth5: -4.0 },
+  XOM: { name: 'Exxon Mobil', price: 118.40, annualDiv: 3.84, freq: 4, divGrowth5: 2.9, priceGrowth5: 14.0 },
+  PEP: { name: 'PepsiCo', price: 152.10, annualDiv: 5.42, freq: 4, divGrowth5: 6.6, priceGrowth5: 2.8 },
+  ABBV: { name: 'AbbVie', price: 189.50, annualDiv: 6.56, freq: 4, divGrowth5: 7.9, priceGrowth5: 13.5 }
+};
+var PICKS = ['KO', 'JNJ', 'PG', 'O', 'VZ', 'XOM', 'PEP', 'ABBV'];
+var FREQ_LABEL = { 12: 'Monthly', 4: 'Quarterly', 2: 'Semi-annual', 1: 'Annual' };
+var PHASE_DESC = {
+  Build: 'Income comes mainly from the capital you put in.',
+  Compound: 'Dividend raises and reinvestment have doubled your starting income.',
+  Snowball: 'Income is 4× year one and compounding on itself.'
+};
+function whenLD() { return new Promise(function (res) { var t0 = Date.now(); (function chk() { if (window.LiveData || Date.now() - t0 > 8000) res(window.LiveData || null); else setTimeout(chk, 50); })(); }); }
+function ok(v) { return v != null && isFinite(v); }
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+function money0(v) { return ok(v) ? (v < 0 ? '-$' : '$') + Math.abs(v).toLocaleString('en-US', { maximumFractionDigits: 0 }) : 'n/a'; }
+function money2(v) { return ok(v) ? '$' + v.toFixed(2) : 'n/a'; }
+function incFmt(v) { return !ok(v) ? 'n/a' : Math.abs(v) < 1000 ? '$' + v.toFixed(2) : money0(v); }
+function compact(v) { if (!ok(v)) return 'n/a'; var a = Math.abs(v); return a >= 1e6 ? '$' + (v / 1e6).toFixed(2) + 'M' : a >= 1e5 ? '$' + (v / 1e3).toFixed(0) + 'K' : money0(v); }
+
+function simulate(o) {
+  var price = o.price, dps = o.annualDiv, freq = o.freq, every = 12 / freq, keep = 1 - o.tax / 100;
+  var sI = o.initial / price, sC = 0, sD = 0, cash = 0, contributed = o.initial, cum = 0, mpg = Math.pow(1 + o.pg / 100, 1 / 12);
+  var rows = [];
+  for (var y = 1; y <= o.years; y++) {
+    var inc = { i: 0, c: 0, d: 0 };
+    for (var m = 1; m <= 12; m++) {
+      price *= mpg;
+      if (o.monthly > 0) { sC += o.monthly / price; contributed += o.monthly; }
+      if (m % every === 0) {
+        var pay = dps / freq * keep, a = sI * pay, b = sC * pay, c = sD * pay, t = a + b + c;
+        inc.i += a; inc.c += b; inc.d += c; cum += t;
+        if (o.drip) sD += t / price; else cash += t;
+      }
+    }
+    var total = inc.i + inc.c + inc.d, shares = sI + sC + sD;
+    rows.push({ year: y, income: total, inc: inc, value: shares * price + cash, shares: shares, contributed: contributed, cum: cum, yoc: contributed > 0 ? total / contributed * 100 : 0, price: price, dps: dps });
+    dps *= 1 + o.g / 100;
+  }
+  return rows;
+}
+
+class Component extends DCLogic {
+  state = { symbol: 'KO', query: 'KO', prof: null, loading: false, err: '', initial: 10000, monthly: 250, years: 25, drip: true, tax: 0, ov: {}, hover: null };
+
+  async componentDidMount() {
+    this.LD = await whenLD();
+    var sym = 'KO';
+    try { var q = new URLSearchParams(window.location.search).get('symbol'); if (q) sym = q.toUpperCase(); } catch (e) {}
+    this.load(sym);
+  }
+
+  load = async (raw) => {
+    var sym = String(raw || '').trim().toUpperCase().replace(/^\$/, '');
+    if (!sym) return;
+    var tok = (this.tok = (this.tok || 0) + 1);
+    this.setState({ symbol: sym, query: sym, loading: true, err: '', ov: {}, hover: null });
+    try { var u = new URL(window.location.href); u.searchParams.set('symbol', sym); window.history.replaceState(null, '', u.toString()); } catch (e) {}
+    var smp = SAMPLES[sym];
+    if (this.LD && this.LD.status().any) {
+      try {
+        var p = await this.LD.dividendProfile(sym);
+        if (tok !== this.tok) return;
+        p = Object.assign({}, p, { live: true });
+        this.setState({ prof: p, loading: false, err: p.annualDiv > 0 ? '' : sym + ' has no dividend on record — enter an annual dividend under Assumptions, or pick a dividend payer.' });
+        return;
+      } catch (e) {
+        if (tok !== this.tok) return;
+        this.setState({ prof: smp ? Object.assign({ symbol: sym, live: false }, smp) : null, loading: false, err: 'Live data unavailable for ' + sym + ' (' + e.message + ')' + (smp ? ' — showing sample figures.' : '. Enter price and dividend under Assumptions.') });
+        return;
+      }
+    }
+    this.setState({ prof: smp ? Object.assign({ symbol: sym, live: false }, smp) : null, loading: false, err: smp ? '' : 'No data source connected — enter price and dividend under Assumptions.' });
+  };
+
+  onQuery = (e) => { this.setState({ query: e.target.value.toUpperCase() }); };
+  onQueryKey = (e) => { if (e.key === 'Enter') this.load(this.state.query); };
+  onLoad = () => { this.load(this.state.query); };
+  onPick = (e) => { this.load(e.currentTarget.dataset.symbol); };
+  onField = (e) => {
+    var k = e.target.name, v = parseFloat(e.target.value);
+    if (k === 'years') v = clamp(Math.round(v) || 1, 1, 40);
+    else if (k === 'tax') v = clamp(isNaN(v) ? 0 : v, 0, 60);
+    else v = Math.max(0, isNaN(v) ? 0 : v);
+    var o = {}; o[k] = v; o.hover = null; this.setState(o);
+  };
+  onOv = (e) => {
+    var k = e.target.name, raw = e.target.value, v = k === 'freq' ? parseInt(raw, 10) : parseFloat(raw);
+    this.setState((s) => { var ov = Object.assign({}, s.ov); if (raw === '' || isNaN(v)) delete ov[k]; else ov[k] = v; return { ov: ov }; });
+  };
+  resetOv = () => { this.setState({ ov: {} }); };
+  onDrip = (e) => { this.setState({ drip: e.currentTarget.dataset.drip === '1' }); };
+  onBarEnter = (e) => { var i = parseInt(e.currentTarget.dataset.i, 10); if (i !== this.state.hover) this.setState({ hover: i }); };
+  onChartLeave = () => { if (this.state.hover != null) this.setState({ hover: null }); };
+
+  renderVals() {
+    var s = this.state, pf = s.prof || {}, ov = s.ov;
+    var price = ok(ov.price) ? ov.price : pf.price;
+    var annualDiv = ok(ov.annualDiv) ? ov.annualDiv : pf.annualDiv;
+    var freq = ov.freq || pf.freq || 4;
+    var autoG = ok(pf.divGrowth5) ? clamp(+pf.divGrowth5.toFixed(1), 0, 10) : 5;
+    var autoPG = ok(pf.priceGrowth5) ? clamp(+pf.priceGrowth5.toFixed(1), -2, 8) : 4;
+    var g = ok(ov.divGrowth) ? ov.divGrowth : autoG, pg = ok(ov.priceGrowth) ? ov.priceGrowth : autoPG;
+    var ready = ok(price) && price > 0 && ok(annualDiv) && annualDiv > 0 && (s.initial > 0 || s.monthly > 0);
+    var rows = ready ? simulate({ price: price, annualDiv: annualDiv, freq: freq, years: s.years, initial: s.initial, monthly: s.monthly, drip: s.drip, tax: s.tax, g: g, pg: pg }) : [];
+    var N = rows.length, cy = new Date().getFullYear();
+
+    var ph = [];
+    var base0 = N ? rows[0].income : 0;
+    var p2 = base0 > 0 ? rows.findIndex(function (x) { return x.income >= 2 * base0; }) : -1;
+    var p4 = base0 > 0 ? rows.findIndex(function (x) { return x.income >= 4 * base0; }) : -1;
+    if (N) {
+      ph.push({ name: 'Build', from: 0, to: p2 < 0 ? N - 1 : p2 - 1 });
+      if (p2 >= 0) { var e2 = p4 < 0 ? N - 1 : p4 - 1; if (e2 >= p2) ph.push({ name: 'Compound', from: p2, to: e2 }); }
+      if (p4 >= 0) ph.push({ name: 'Snowball', from: p4, to: N - 1 });
+    }
+    var idx = s.hover != null && s.hover < N ? s.hover : N - 1;
+    var cur = ph.find(function (p) { return idx >= p.from && idx <= p.to; }) || ph[0];
+    var r = rows[idx];
+
+    var maxInc = N ? Math.max.apply(null, rows.map(function (x) { return x.income; })) : 1;
+    var maxVal = N ? Math.max.apply(null, rows.map(function (x) { return x.value; })) : 1;
+    var step = N <= 12 ? 1 : N <= 24 ? 2 : 5;
+    var bars = rows.map(function (x, i) {
+      var t = x.income || 1;
+      return { i: i, h: (x.income / maxInc * 100).toFixed(2) + '%', pD: (x.inc.d / t * 100).toFixed(2) + '%', pC: (x.inc.c / t * 100).toFixed(2) + '%', pI: (x.inc.i / t * 100).toFixed(2) + '%',
+        op: s.hover == null || s.hover === i ? '1' : '0.45', xl: i === 0 || (i + 1) % step === 0 ? 'Y' + (i + 1) : '' };
+    });
+    var valuePath = N ? 'M' + rows.map(function (x, i) { return ((i + 0.5) / N * 1000).toFixed(1) + ',' + (300 - x.value / maxVal * 285).toFixed(1); }).join(' L') : '';
+    var phases = ph.map(function (p) {
+      var w = (p.to - p.from + 1) / N * 100;
+      return { label: w >= 9 ? p.name : '', left: (p.from / N * 100).toFixed(2) + '%', width: w.toFixed(2) + '%', bg: cur && cur.name === p.name ? 'var(--color-accent-200)' : 'transparent' };
+    });
+    var bounds = ph.slice(1).map(function (p) { return { left: (p.from / N * 100).toFixed(2) + '%' }; });
+
+    var ro = { title: 'Enter an investment to project income', sub: '', phase: '—', desc: '', cells: [] };
+    if (r) {
+      ro = {
+        title: 'Year ' + r.year + ' · ' + (cy + r.year) + (s.hover == null ? ' (end of horizon)' : ''),
+        sub: r.shares.toFixed(1) + ' shares · est. share price ' + money2(r.price) + ' · dividend ' + money2(r.dps) + '/share',
+        phase: cur ? cur.name.toUpperCase() + ' PHASE' : '—', desc: cur ? PHASE_DESC[cur.name] : '',
+        cells: [
+          { label: 'Monthly Cash Flow', value: incFmt(r.income / 12), size: '30px', color: 'var(--color-accent-700)' },
+          { label: 'Annual Cash Flow', value: incFmt(r.income), size: '30px', color: 'var(--color-accent-700)' },
+          { label: 'Portfolio Value', value: compact(r.value), size: '24px', color: 'var(--color-text)' },
+          { label: 'Yield on Cost', value: r.yoc.toFixed(2) + '%', size: '24px', color: 'var(--color-text)' },
+          { label: 'Dividends Collected', value: compact(r.cum), size: '24px', color: 'var(--color-text)' },
+          { label: 'Total Invested', value: compact(r.contributed), size: '24px', color: 'var(--color-text)' }
+        ]
+      };
+    }
+
+    var ms = [];
+    var addM = function (label, i) { if (i >= 0) { var x = rows[i]; ms.push({ label: label, i: i, when: 'Year ' + x.year + ' (' + (cy + x.year) + ')', monthly: incFmt(x.income / 12), annual: incFmt(x.income), value: compact(x.value) }); } };
+    if (N) {
+      addM('Income doubles', p2);
+      if (s.monthly > 0) addM('Dividends exceed your contributions', rows.findIndex(function (x) { return x.income >= s.monthly * 12; }));
+      addM('Income reaches 4× year one', p4);
+      [100, 500, 1000, 2500, 5000].forEach(function (t) { var i = rows.findIndex(function (x) { return x.income / 12 >= t; }); if (i > 0) addM('$' + t.toLocaleString() + ' / month in dividends', i); });
+      ms.sort(function (a, b) { return a.i - b.i; });
+    }
+
+    var yld = ok(price) && price > 0 && ok(annualDiv) ? annualDiv / price * 100 : null;
+    var facts = [
+      { label: 'Price', value: money2(price) },
+      { label: 'Annual Dividend', value: money2(annualDiv) },
+      { label: 'Yield', value: ok(yld) ? yld.toFixed(2) + '%' : 'n/a' },
+      { label: 'Paid', value: FREQ_LABEL[freq] || '—' },
+      { label: '5-Yr Div Growth', value: ok(pf.divGrowth5) ? pf.divGrowth5.toFixed(1) + '%' : 'n/a' }
+    ];
+    var src = pf.live ? (pf.sources || []).join(' + ') : 'Sample';
+    var assumptions = [
+      { key: 'price', label: 'Share Price ($)', step: 0.01, value: ok(price) ? +(+price).toFixed(2) : '', note: ok(ov.price) ? 'Manual override' : pf.live ? 'Live quote · ' + src : pf.price ? 'Sample' : 'n/a — enter manually' },
+      { key: 'annualDiv', label: 'Annual Dividend / Share ($)', step: 0.01, value: ok(annualDiv) ? +(+annualDiv).toFixed(4) : '', note: ok(ov.annualDiv) ? 'Manual override' : pf.divSrc || (pf.annualDiv ? 'Sample' : 'n/a — enter manually') },
+      { key: 'divGrowth', label: 'Dividend Growth (% / yr)', step: 0.25, value: g, note: ok(ov.divGrowth) ? 'Manual override' : ok(pf.divGrowth5) ? '5-yr history ' + pf.divGrowth5.toFixed(1) + '% (capped 0–10%)' : 'Default — no dividend history' },
+      { key: 'priceGrowth', label: 'Share Price Growth (% / yr)', step: 0.25, value: pg, note: ok(ov.priceGrowth) ? 'Manual override' : ok(pf.priceGrowth5) ? '5-yr history ' + pf.priceGrowth5.toFixed(1) + '% (capped −2–8%)' : 'Default — no price history' }
+    ];
+    var msg = s.loading ? 'Loading live data for ' + s.symbol + '…' : s.err;
+
+    return {
+      dataTag: pf.live ? 'LIVE DATA' : 'SAMPLE DATA', dataTagClass: pf.live ? 'tag tag-accent' : 'tag tag-outline',
+      query: s.query, onQuery: this.onQuery, onQueryKey: this.onQueryKey, onLoad: this.onLoad, onPick: this.onPick,
+      picks: PICKS.map(function (p) { return { symbol: p, cls: p === s.symbol ? 'tag tag-accent' : 'tag tag-outline' }; }),
+      initial: s.initial, monthly: s.monthly, years: s.years, tax: s.tax, yearsLabel: s.years + (s.years === 1 ? ' year' : ' years'),
+      onField: this.onField, onOv: this.onOv, resetOv: this.resetOv, onDrip: this.onDrip,
+      dripOn: 'seg-opt' + (s.drip ? ' active' : ''), dripOff: 'seg-opt' + (s.drip ? '' : ' active'),
+      assumptions: assumptions, freq: freq,
+      hasMsg: !!msg, msg: msg, symbol: s.symbol, name: pf.name || '', facts: facts,
+      ro: ro, hasChart: N > 0, noChart: N === 0,
+      noChartMsg: s.loading ? 'Loading…' : !(ok(annualDiv) && annualDiv > 0) ? 'No dividend data — enter an annual dividend per share under Assumptions.' : 'Enter an initial investment or monthly contribution.',
+      phases: phases, bounds: bounds, bars: bars, valuePath: valuePath,
+      axis: { incMax: compact(maxInc), incMid: compact(maxInc / 2), valMax: compact(maxVal / 0.95), valMid: compact(maxVal / 0.95 / 2) },
+      onBarEnter: this.onBarEnter, onChartLeave: this.onChartLeave,
+      milestones: ms, hasMilestones: ms.length > 0, noMilestones: N > 0 && ms.length === 0
+    };
+  }
+}
+
+</script>
+</body>
+</html>

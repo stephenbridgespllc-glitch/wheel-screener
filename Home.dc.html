@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/industry-e2648902-d6e6-4bc5-b1ff-d0fd94fd6c60/styles.css">
+  <link rel="stylesheet" href="cy-theme.css">
+  <script src="_ds/industry-e2648902-d6e6-4bc5-b1ff-d0fd94fd6c60/_ds_bundle.js"></script>
+  <style>
+    body { margin: 0; }
+    a { color: #111; }
+    a:hover { color: #C23B00; }
+  </style>
+</helmet>
+
+<div class="cy-shell">
+  <aside class="cy-side">
+    <a href="Home.dc.html" class="cy-brand">Compound<br>Yield<span>.</span></a>
+    <div class="cy-foot"><i></i>Research tools for long-term investors. Not investment advice.</div>
+  </aside>
+
+  <div class="cy-main">
+    <div style="padding:72px 48px 52px;display:flex;flex-direction:column;gap:26px;border-bottom:2px solid #111;transition:opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);opacity:{{ heroOp }};transform:{{ heroTf }}">
+      <span style="font-family:var(--font-mono);font-size:12px;text-transform:uppercase;letter-spacing:0.08em">Mission —</span>
+      <h1 style="margin:0;font-family:var(--font-heading);font-size:88px;font-weight:800;line-height:0.9;letter-spacing:-0.05em;max-width:980px;text-wrap:balance">Invest with clarity, not noise<span style="color:#FF4F00">.</span></h1>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:40px;max-width:980px">
+        <p style="margin:0;font-size:17px;line-height:1.6;text-wrap:pretty">Compound Yield exists to give everyday investors the same disciplined, data-driven view of a business that professionals rely on. We believe a stock is a share in a real company, and that understanding what it earns, what it pays and what it is worth is the surest path to building lasting wealth.</p>
+        <p style="margin:0;font-size:17px;line-height:1.6;color:#4D4A42;text-wrap:pretty">Our tools turn filings, prices and dividends into clear answers, so you can screen with purpose, value with conviction and plan the income your portfolio can produce.</p>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column">
+      <sc-for list="{{ tools }}" as="t" hint-placeholder-count="6">
+        <a href="{{ t.href }}" style="display:grid;grid-template-columns:64px minmax(180px,300px) minmax(0,1fr) 40px;align-items:baseline;gap:12px;padding:20px 48px;border-bottom:1px solid #111;color:#111;text-decoration:none;transition:opacity 0.5s ease, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.12s;opacity:{{ t.op }};transform:{{ t.tf }};transition-delay:{{ t.delay }}" style-hover="background:#FF4F00;color:#111">
+          <span style="font-family:var(--font-mono);font-size:12px">{{ t.num }}</span>
+          <span style="font-family:var(--font-heading);font-size:28px;font-weight:700;letter-spacing:-0.03em;line-height:1.05">{{ t.title }}</span>
+          <span style="font-size:15px;line-height:1.45;color:#2E2C27">{{ t.desc }}</span>
+          <span style="text-align:right;font-size:22px">&rarr;</span>
+        </a>
+      </sc-for>
+    </div>
+
+    <div style="margin-top:auto;padding:18px 48px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:#4D4A42">
+      <span>© Compound Yield</span>
+      <span>For research and education only. Not investment advice.</span>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+var TOOLS = [
+  { title: 'Stock Screener', desc: 'Filter the market by size, dividend yield, volatility and RSI.', href: 'Stock%20Screener.dc.html' },
+  { title: 'Value', desc: 'Value any company with the method that fits its industry.', href: 'Stock%20Valuation.dc.html' },
+  { title: 'Dividend Calculator', desc: 'Project the monthly and annual income an investment can produce.', href: 'Dividend%20Calculator.dc.html' },
+  { title: 'Compound Calculator', desc: 'See how steady contributions and time grow your money.', href: 'Compound%20Calculator.dc.html' },
+  { title: 'Portfolio', desc: 'Track your holdings, returns and monthly dividend cash flow.', href: 'Portfolio.dc.html' },
+  { title: 'Options Guide', desc: 'Learn how to generate income by selling options.', href: 'Options%20Guide.dc.html' }
+];
+
+class Component extends DCLogic {
+  state = { shown: false };
+  componentDidMount() { this.t = setTimeout(() => this.setState({ shown: true }), 60); }
+  componentWillUnmount() { clearTimeout(this.t); }
+  renderVals() {
+    var on = this.state.shown;
+    return {
+      heroOp: on ? '1' : '0',
+      heroTf: on ? 'translateY(0)' : 'translateY(18px)',
+      tools: TOOLS.map(function (t, i) {
+        return { title: t.title, desc: t.desc, href: t.href, num: '0' + (i + 1),
+          op: on ? '1' : '0', tf: on ? 'translateX(0)' : 'translateX(-14px)', delay: on ? (0.35 + i * 0.07).toFixed(2) + 's' : '0s' };
+      })
+    };
+  }
+}
+
+</script>
+</body>
+</html>

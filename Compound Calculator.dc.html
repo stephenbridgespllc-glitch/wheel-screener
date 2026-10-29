@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/industry-e2648902-d6e6-4bc5-b1ff-d0fd94fd6c60/styles.css">
+  <link rel="stylesheet" href="cy-theme.css">
+  <script src="_ds/industry-e2648902-d6e6-4bc5-b1ff-d0fd94fd6c60/_ds_bundle.js"></script>
+  <style>
+    body { margin: 0; }
+    a { color: var(--color-accent-700); }
+    a:hover { color: var(--color-accent-900); }
+  </style>
+</helmet>
+
+<div class="cy-shell">
+  <aside class="cy-side">
+    <a href="Home.dc.html" class="cy-brand">Compound<br>Yield<span>.</span></a>
+    <nav class="cy-index">
+      <a href="Stock%20Screener.dc.html" class="cy-link"><span>01</span>Stock Screener</a>
+      <a href="Stock%20Valuation.dc.html" class="cy-link"><span>02</span>Value</a>
+      <a href="Dividend%20Calculator.dc.html" class="cy-link"><span>03</span>Dividend Calculator</a>
+      <a href="Compound%20Calculator.dc.html" class="cy-link is-active"><span>04</span>Compound Calculator</a>
+      <a href="Portfolio.dc.html" class="cy-link"><span>05</span>Portfolio</a>
+      <a href="Options%20Guide.dc.html" class="cy-link"><span>06</span>Options Guide</a>
+    </nav>
+    <div class="cy-foot"><i></i>Research tools for long-term investors. Not investment advice.</div>
+  </aside>
+  <div class="cy-main">
+
+  <header class="cy-top">
+    <div class="cy-pagetitle"><span class="cy-num">04</span><span>Compound Calculator</span></div>
+  </header>
+
+  <div style="display:flex;flex:1;flex-wrap:wrap;align-items:flex-start">
+    <aside class="card blueprint" style="flex:0 0 300px;width:300px;min-width:260px;margin:var(--space-4);padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-4);position:relative;box-sizing:border-box">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div class="card-kicker" style="font-size:11px;letter-spacing:0.08em">YOUR PLAN</div>
+
+      <div class="field"><label>Initial Investment ($)</label><input class="input" type="number" step="500" min="0" name="initial" value="{{ initial }}" onChange="{{ onField }}"></div>
+      <div class="field"><label>Monthly Contribution ($)</label><input class="input" type="number" step="50" min="0" name="monthly" value="{{ monthly }}" onChange="{{ onField }}"></div>
+      <div class="field"><label>Increase Contributions Each Year (%)</label><input class="input" type="number" step="0.5" min="0" name="raise" value="{{ raise }}" onChange="{{ onField }}"></div>
+      <div class="field"><label>Annual Rate of Return (%)</label><input class="input" type="number" step="0.25" min="0" name="rate" value="{{ rate }}" onChange="{{ onField }}"><div style="font-size:10px;color:var(--color-neutral-600);margin-top:2px">S&amp;P 500 long-run average ≈ 10% before inflation</div></div>
+      <div class="field">
+        <label>Time Horizon — {{ yearsLabel }}</label>
+        <input type="range" min="1" max="50" step="1" name="years" value="{{ years }}" onChange="{{ onField }}" style="width:100%;accent-color:var(--color-accent)">
+      </div>
+      <div class="field">
+        <label>Compounding</label>
+        <select class="input" name="freq" value="{{ freq }}" onChange="{{ onField }}">
+          <option value="365">Daily</option>
+          <option value="12">Monthly</option>
+          <option value="4">Quarterly</option>
+          <option value="1">Annually</option>
+        </select>
+      </div>
+      <div class="field"><label>Inflation (%)</label><input class="input" type="number" step="0.25" min="0" name="inflation" value="{{ inflation }}" onChange="{{ onField }}"><div style="font-size:10px;color:var(--color-neutral-600);margin-top:2px">Used for the today's-dollars value</div></div>
+      <button class="btn btn-ghost btn-block" onClick="{{ reset }}">Reset</button>
+    </aside>
+
+    <main style="flex:1;min-width:0;padding:var(--space-4) var(--space-4) var(--space-6);display:flex;flex-direction:column;gap:var(--space-4);box-sizing:border-box">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.09em;color:var(--color-neutral-700)">Compound Interest Calculator</div>
+        <div style="font-family:var(--font-heading);font-size:34px;font-weight:800;line-height:1;letter-spacing:-0.025em">{{ headline }}</div>
+      </div>
+
+      <div class="card blueprint" style="position:relative;padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-4)">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap">
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <span style="font-family:var(--font-heading);font-size:22px;font-weight:800;letter-spacing:-0.025em">{{ ro.title }}</span>
+            <span style="font-size:12px;color:var(--color-neutral-700)">{{ ro.sub }}</span>
+          </div>
+          <span class="{{ ro.tagCls }}" style="letter-spacing:0.08em">{{ ro.tag }}</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));border-top:1px solid var(--color-neutral-300);border-left:1px solid var(--color-neutral-300)">
+          <sc-for list="{{ ro.cells }}" as="c" hint-placeholder-count="6">
+            <div style="padding:var(--space-3);border-right:1px solid var(--color-neutral-300);border-bottom:1px solid var(--color-neutral-300);display:flex;flex-direction:column;gap:4px">
+              <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--color-neutral-700)">{{ c.label }}</span>
+              <span style="font-family:var(--font-heading);font-weight:800;font-size:{{ c.size }};color:{{ c.color }};letter-spacing:-0.025em">{{ c.value }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex">
+            <div style="width:64px;display:flex;flex-direction:column;justify-content:space-between;font-size:11px;color:var(--color-neutral-600);text-align:right;padding-right:8px;box-sizing:border-box"><span>{{ axis.max }}</span><span>{{ axis.mid }}</span><span>$0</span></div>
+            <div onMouseLeave="{{ onLeave }}" style="position:relative;flex:1;height:320px;border-left:1px solid var(--color-neutral-400);border-bottom:1px solid var(--color-neutral-400)">
+              <div style="position:absolute;left:0;right:0;top:50%;border-top:1px dashed var(--color-neutral-300)"></div>
+              <sc-if value="{{ cross.on }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;top:0;bottom:0;width:0;border-left:1px dashed var(--color-neutral-600);pointer-events:none;left:{{ cross.left }}"></div>
+                <div style="position:absolute;top:4px;padding:2px 6px;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;background:var(--color-bg);border:1px solid var(--color-neutral-400);white-space:nowrap;pointer-events:none;left:{{ cross.left }};transform:{{ cross.tf }}">Interest overtakes contributions</div>
+              </sc-if>
+              <div style="position:absolute;inset:0;display:flex;align-items:flex-end;gap:2px;padding:0 2px">
+                <sc-for list="{{ bars }}" as="b" hint-placeholder-count="25">
+                  <div onMouseEnter="{{ onEnter }}" data-i="{{ b.i }}" style="flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;cursor:crosshair;transition:opacity 0.15s;opacity:{{ b.op }}">
+                    <div style="display:flex;flex-direction:column;transition:height 0.5s ease;height:{{ b.h }}">
+                      <div style="background:var(--color-accent-800);transition:height 0.5s ease;height:{{ b.pX }}"></div>
+                      <div style="background:var(--color-accent-500);transition:height 0.5s ease;height:{{ b.pC }}"></div>
+                      <div style="background:var(--color-accent-300);transition:height 0.5s ease;height:{{ b.pI }}"></div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:2px;margin-left:64px;padding:0 2px">
+            <sc-for list="{{ bars }}" as="b" hint-placeholder-count="25">
+              <div style="flex:1;min-width:0;text-align:center;font-size:10px;color:var(--color-neutral-600);white-space:nowrap">{{ b.xl }}</div>
+            </sc-for>
+          </div>
+          <div style="display:flex;gap:var(--space-4);flex-wrap:wrap;font-size:12px;margin-top:var(--space-2);align-items:center">
+            <span style="display:inline-flex;align-items:center;gap:6px"><i style="width:12px;height:12px;background:var(--color-accent-300);display:inline-block"></i>Initial investment</span>
+            <span style="display:inline-flex;align-items:center;gap:6px"><i style="width:12px;height:12px;background:var(--color-accent-500);display:inline-block"></i>Contributions</span>
+            <span style="display:inline-flex;align-items:center;gap:6px"><i style="width:12px;height:12px;background:var(--color-accent-800);display:inline-block"></i>Interest earned</span>
+            <span style="color:var(--color-neutral-600);margin-left:auto">Balance at the end of each year · hover to scan</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card blueprint" style="position:relative;padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3)">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div class="card-kicker">MILESTONES</div>
+        <sc-if value="{{ hasMilestones }}" hint-placeholder-val="{{ true }}">
+          <table class="table" style="width:100%" onMouseLeave="{{ onLeave }}">
+            <thead>
+              <tr><th style="text-align:left">Milestone</th><th style="text-align:right">Reached</th><th style="text-align:right">Balance</th><th style="text-align:right">Interest Earned</th><th style="text-align:right">In Today's Dollars</th></tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ milestones }}" as="m" hint-placeholder-count="4">
+                <tr onMouseEnter="{{ onEnter }}" data-i="{{ m.i }}" style-hover="background:var(--color-accent-100)">
+                  <td style="font-weight:600">{{ m.label }}</td>
+                  <td style="text-align:right">{{ m.when }}</td>
+                  <td style="text-align:right">{{ m.bal }}</td>
+                  <td style="text-align:right">{{ m.interest }}</td>
+                  <td style="text-align:right">{{ m.real }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </sc-if>
+        <sc-if value="{{ noMilestones }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:13px;color:var(--color-neutral-600)">No milestones reached within this horizon. Try a longer horizon or a larger monthly contribution.</div>
+        </sc-if>
+      </div>
+
+      <div style="font-size:11px;color:var(--color-neutral-600);line-height:1.5">Assumes a constant rate of return, contributions at the end of each month, and no taxes or fees. Real returns vary year to year. For education only, not investment advice.</div>
+    </main>
+  </div>
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+var DEF = { initial: 10000, monthly: 500, raise: 0, rate: 8, years: 30, freq: 12, inflation: 2.5 };
+var KEY = 'compound_calc_v1';
+function load() { try { return Object.assign({}, DEF, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { return Object.assign({}, DEF); } }
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+function money0(v) { return isFinite(v) ? '$' + Math.round(v).toLocaleString('en-US') : 'n/a'; }
+function compact(v) { var a = Math.abs(v); return a >= 1e9 ? '$' + (v / 1e9).toFixed(2) + 'B' : a >= 1e6 ? '$' + (v / 1e6).toFixed(2) + 'M' : a >= 1e5 ? '$' + (v / 1e3).toFixed(0) + 'K' : money0(v); }
+
+function simulate(o) {
+  var mr = Math.pow(1 + o.rate / 100 / o.freq, o.freq / 12) - 1;
+  var bal = o.initial, contrib = 0, m = o.monthly, rows = [];
+  for (var y = 1; y <= o.years; y++) {
+    for (var k = 0; k < 12; k++) { bal = bal * (1 + mr) + m; contrib += m; }
+    var interest = bal - o.initial - contrib;
+    rows.push({ year: y, bal: bal, contrib: contrib, interest: interest, real: bal / Math.pow(1 + o.inflation / 100, y), monthly: m });
+    m *= 1 + o.raise / 100;
+  }
+  return rows;
+}
+
+class Component extends DCLogic {
+  state = Object.assign(load(), { hover: null });
+
+  persist() { var s = this.state, o = {}; Object.keys(DEF).forEach(function (k) { o[k] = s[k]; }); try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) {} }
+  onField = (e) => {
+    var k = e.target.name, v = parseFloat(e.target.value);
+    if (isNaN(v)) v = 0;
+    if (k === 'years') v = clamp(Math.round(v), 1, 50);
+    else if (k === 'rate') v = clamp(v, 0, 50);
+    else if (k === 'freq') v = parseInt(e.target.value, 10) || 12;
+    else v = Math.max(0, v);
+    var o = { hover: null }; o[k] = v;
+    this.setState(o, () => this.persist());
+  };
+  reset = () => { this.setState(Object.assign({}, DEF, { hover: null }), () => this.persist()); };
+  onEnter = (e) => { var i = parseInt(e.currentTarget.dataset.i, 10); if (i !== this.state.hover) this.setState({ hover: i }); };
+  onLeave = () => { if (this.state.hover != null) this.setState({ hover: null }); };
+
+  renderVals() {
+    var s = this.state, cy = new Date().getFullYear();
+    var rows = simulate(s), N = rows.length;
+    var idx = s.hover != null && s.hover < N ? s.hover : N - 1, r = rows[idx];
+    var max = Math.max.apply(null, rows.map(function (x) { return x.bal; })) || 1;
+    var step = N <= 12 ? 1 : N <= 25 ? 2 : 5;
+    var bars = rows.map(function (x, i) {
+      var b = x.bal || 1;
+      return { i: i, h: (x.bal / max * 100).toFixed(2) + '%', pI: (s.initial / b * 100).toFixed(2) + '%', pC: (x.contrib / b * 100).toFixed(2) + '%', pX: (Math.max(0, x.interest) / b * 100).toFixed(2) + '%',
+        op: s.hover == null || s.hover === i ? '1' : '0.45', xl: i === 0 || (i + 1) % step === 0 ? 'Y' + (i + 1) : '' };
+    });
+    var crossI = rows.findIndex(function (x) { return x.contrib > 0 && x.interest > x.contrib + s.initial; });
+    var crossL = crossI >= 0 ? (crossI + 0.5) / N * 100 : 0;
+    var cross = { on: crossI >= 0, left: crossL.toFixed(2) + '%', tf: crossL > 70 ? 'translateX(calc(-100% - 6px))' : 'translateX(6px)' };
+    var invested = s.initial + r.contrib, growth = invested > 0 ? r.bal / invested : 0;
+
+    var ms = [];
+    var add = function (label, i) { if (i >= 0) { var x = rows[i]; ms.push({ label: label, i: i, when: 'Year ' + x.year + ' (' + (cy + x.year) + ')', bal: compact(x.bal), interest: compact(x.interest), real: compact(x.real) }); } };
+    if (s.initial > 0) add('Initial investment doubles', rows.findIndex(function (x) { return x.bal >= 2 * (s.initial + x.contrib); }) >= 0 && s.monthly === 0 ? rows.findIndex(function (x) { return x.bal >= 2 * s.initial; }) : -1);
+    add('Balance doubles what you put in', rows.findIndex(function (x) { return x.bal >= 2 * (s.initial + x.contrib); }));
+    add('Interest overtakes contributions', crossI);
+    [100000, 250000, 500000, 1000000, 2000000].forEach(function (t) { var i = rows.findIndex(function (x) { return x.bal >= t; }); if (i >= 0 && (s.initial < t)) add(compact(t) + ' balance', i); });
+    ms.sort(function (a, b) { return a.i - b.i; });
+
+    var final = rows[N - 1];
+    return {
+      initial: s.initial, monthly: s.monthly, raise: s.raise, rate: s.rate, years: s.years, freq: s.freq, inflation: s.inflation,
+      yearsLabel: s.years + (s.years === 1 ? ' year' : ' years'),
+      onField: this.onField, reset: this.reset, onEnter: this.onEnter, onLeave: this.onLeave,
+      headline: compact(final.bal) + ' in ' + s.years + (s.years === 1 ? ' year' : ' years'),
+      ro: {
+        title: 'Year ' + r.year + ' · ' + (cy + r.year) + (s.hover == null ? ' (end of horizon)' : ''),
+        sub: 'Contributing ' + money0(r.monthly) + ' / month · ' + s.rate + '% annual return, compounded ' + ({ 365: 'daily', 12: 'monthly', 4: 'quarterly', 1: 'annually' }[s.freq] || 'monthly'),
+        tag: growth > 0 ? growth.toFixed(2) + '× YOUR MONEY' : '—', tagCls: 'tag tag-accent',
+        cells: [
+          { label: 'Balance', value: compact(r.bal), size: '30px', color: 'var(--color-accent-700)' },
+          { label: 'Interest Earned', value: compact(r.interest), size: '30px', color: 'var(--color-accent-700)' },
+          { label: 'Total Contributed', value: compact(invested), size: '24px', color: 'var(--color-text)' },
+          { label: "In Today's Dollars", value: compact(r.real), size: '24px', color: 'var(--color-text)' },
+          { label: 'Interest Share', value: r.bal > 0 ? (Math.max(0, r.interest) / r.bal * 100).toFixed(0) + '%' : 'n/a', size: '24px', color: 'var(--color-text)' },
+          { label: 'Rule of 72', value: s.rate > 0 ? 'Doubles every ' + (72 / s.rate).toFixed(1) + ' yrs' : 'n/a', size: '18px', color: 'var(--color-text)' }
+        ]
+      },
+      axis: { max: compact(max), mid: compact(max / 2) },
+      bars: bars, cross: cross,
+      milestones: ms, hasMilestones: ms.length > 0, noMilestones: ms.length === 0
+    };
+  }
+}
+
+</script>
+</body>
+</html>
